@@ -131,8 +131,10 @@ market.GetWorldMarketWaitList().content
 market.GetWorldMarketWaitList().statuscode
 market.GetWorldMarketWaitList().success
 market.GetWorldMarketWaitList().message # this is kinda pointless, devs did not implement such functionality
-market.GetWorldMarketWaitList().GetIterableContent() # converts json to py iterable type
-market.GetWorldMarketWaitList().SaveToFile("path") # saving output to file
+iterable = market.GetWorldMarketWaitList().GetIterableContent() # Deserialize to a Python object.
+for item in iterable:
+    print(item)
+market.GetWorldMarketWaitList().SaveToFile("responses/waitlist/get.json") # saving output to file
 print(bdomarket.ConvertTimestamp(1745193600000)) # can be useful if you don't know how to convert Unix timestamps to human readable format. Note (Post)GetMarketPriceInfo return timestamps...
 
 # WaitList
@@ -194,6 +196,7 @@ market.GetMarket().SaveToFile("responses/market/get.json")
 market.PostGetMarket().SaveToFile("responses/market/post.json")
 print(market.GetMarket())
 print(market.PostGetMarket())
+
 
 ```
 
