@@ -30,10 +30,9 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <!-- <a href="https://github.com/Fizzor96/bdomarket">
+  <a href="https://github.com/Fizzor96/bdomarket">
     <img src="https://github.com/Fizzor96/bdomarket/blob/master/images/logo.png" alt="Logo" width="800" height="380">
-  </a> -->
-![Logo](https://raw.githubusercontent.com/Fizzor96/bdomarket/master/images/logo.png)
+  </a>
 
 
 <h3 align="center">bdomarket</h3>
