@@ -1,11 +1,17 @@
 from setuptools import setup, find_packages
+import os
 
-with open("../README.md", "r") as f:
+here = os.path.abspath(os.path.dirname(__file__))
+readme_path = os.path.join(here, "../README.md")
+
+with open(readme_path, "r") as f:
     description = f.read()
+
+print(description)
 
 setup(
     name='bdomarket',
-    version='0.0.2',
+    version='0.1.1',
     author="Szőke Dominik",
     packages=find_packages(),
     install_reqires=[

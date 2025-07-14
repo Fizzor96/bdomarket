@@ -31,7 +31,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/Fizzor96/bdomarket">
-    <img src="images/logo.png" alt="Logo" width="800" height="380">
+    <img src="https://github.com/Fizzor96/bdomarket/blob/master/images/logo.png" alt="Logo" width="800" height="380">
   </a>
 
 <h3 align="center">bdomarket</h3>
