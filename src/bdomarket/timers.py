@@ -22,7 +22,8 @@ class Boss():
         self.__url = f"https://mmotimer.com/bdo/?server={server.value}"
         self.__data = []
             
-    def Scrape(self):
+    def Scrape(self) -> "Boss":
+        """Scrape the boss timer data from the website."""
         self.__content = requests.get(self.__url, headers={
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9",
@@ -53,9 +54,23 @@ class Boss():
 
                 if bosses:
                     self.__data.append([f"{day} {time}", ', '.join(bosses)])
+        return self
             
     def GetTimer(self):
+        """Get the scraped boss timer data.
+
+        Returns:
+            list: A list of lists containing the boss timer data, where each sublist contains the time and the bosses.
+        """
         return self.__data
     
     def GetTimerJSON(self, indent=2):
+        """Convert the boss timer data to a JSON string.
+
+        Args:
+            indent (int, optional): The number of spaces to use for indentation in the JSON output. Defaults to 2.
+
+        Returns:
+            str: A JSON string representation of the boss timer data.
+        """
         return json.dumps(self.__data, indent=indent)

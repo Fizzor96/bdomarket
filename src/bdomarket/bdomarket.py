@@ -49,15 +49,34 @@ class ApiResponse:
         self.content: str = content if content else ""
         
     def __str__(self):
+        """String representation of the ApiResponse object.
+
+        Returns:
+            str: A string containing the success status, status code, message, and content of the response.
+        """
         return f"success: {self.success}\nstatuscode: {self.statuscode}\nmessage: {self.message}\ncontent: {self.content}"
     
     def Deserialize(self):
+        """Deserialize the content of the ApiResponse object from JSON format.
+
+        Raises:
+            Exception: If the content cannot be deserialized into a Python object.
+
+        Returns:
+            dict: The deserialized content as a Python dictionary.
+        """
         try:
             return json.loads(self.content)
         except:
             raise Exception("Could not get IterableObject!")
         
     def SaveToFile(self, path: str):
+        """Save the ApiResponse content to a file in JSON format.
+
+        Args:
+            path (str): The file path where the content should be saved.
+        """
+        # TODO: improve this like in Item.GetIcon
         folder = os.path.dirname(path)
         os.makedirs(folder, exist_ok=True)
         data = {
@@ -69,8 +88,17 @@ class ApiResponse:
         with open(path, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=2)
 
-def ConvertTimestamp(timestamp_ms:float):
-    return datetime.utcfromtimestamp(timestamp_ms / 1000).strftime("%Y-%m-%d")
+def ConvertTimestamp(timestamp_ms:float, format: str = "%Y-%m-%d") -> str:
+    """Convert a timestamp in milliseconds to a formatted date string.
+
+    Args:
+        timestamp_ms (float): The timestamp in milliseconds to convert.
+        format (str, optional): The format string for the output date. Defaults to "%Y-%m-%d".
+
+    Returns:
+        str: A formatted date string
+    """
+    return datetime.utcfromtimestamp(timestamp_ms / 1000).strftime(format)
 
 class Market:
     def __init__(self, region: AvailableRegions = AvailableRegions.EU, apiversion: AvailableApiVersions = AvailableApiVersions.V2, language: SupportedLanguages = SupportedLanguages.English):
@@ -80,6 +108,19 @@ class Market:
         self.__apilang = language.value
         
     def __makerequest(self, method, endpoint, jsondata = None, data = None, headers = None, params = None,) -> ApiResponse:
+        """Make a request to the API.
+
+        Args:
+            method (_type_): The HTTP method to use for the request (e.g., GET, POST).
+            endpoint (_type_): The API endpoint to call.
+            jsondata (_type_, optional): The JSON data to send in the request body. Defaults to None.
+            data (_type_, optional): The form data to send in the request body. Defaults to None.
+            headers (_type_, optional): The headers to include in the request. Defaults to None.
+            params (_type_, optional): The query parameters to include in the request URL. Defaults to None.
+
+        Returns:
+            ApiResponse: An ApiResponse object containing the success status, status code, message, and content of the response.
+        """
         response = requests.request(method=method, 
                                     url=f"{self.__baseurl}/{self.__apiversion}/{self.__apiregion}/{endpoint}", 
                                     params=params,
@@ -96,7 +137,7 @@ class Market:
         """Returns a parsed variant of the current items waiting to be listed on the central market.  
 
         Returns:
-            VeliaInnResponse: standardized response.
+            ApiResponse: An ApiResponse object containing the success status, status code, message, and content of the response.
         """
         return self.__makerequest("GET", "GetWorldMarketWaitList")
     
@@ -104,7 +145,7 @@ class Market:
         """Returns a parsed variant of the current items waiting to be listed on the central market.  
 
         Returns:
-            VeliaInnResponse: standardized response.
+            ApiResponse: An ApiResponse object containing the success status, status code, message, and content of the response.
         """
         return self.__makerequest("POST", "GetWorldMarketWaitList") 
     
@@ -112,7 +153,7 @@ class Market:
         """Get current market hotlist.
 
         Returns:
-            VeliaInnResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently on market hotlist.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently on market hotlist.
         """
         return self.__makerequest("GET", "GetWorldMarketHotList")
     
@@ -120,7 +161,7 @@ class Market:
         """Get current market hotlist
 
         Returns:
-            VeliaInnResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently on market hotlist.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently on market hotlist.
         """
         return self.__makerequest("POST", "GetWorldMarketHotList")
     
@@ -132,7 +173,7 @@ class Market:
             sid (list[str]): subid(s) like enhancement level
 
         Returns:
-            VeliaInnResponse: standardized response. Returned values in content.history: key (eg. "1745193600000"): Unix timestamps in milliseconds (from utils use ConvertTimestamp), value (eg. 75000000000): item silver value
+            ApiResponse: standardized response. Returned values in content.history: key (eg. "1745193600000"): Unix timestamps in milliseconds (from utils use ConvertTimestamp), value (eg. 75000000000): item silver value
         """
         query_params = {
             "id": id,
@@ -149,7 +190,7 @@ class Market:
             sid (list[str]): subid(s) like enhancement level
 
         Returns:
-            VeliaInnResponse: standardized response. Returned values in content.history: key (eg. "1745193600000"): Unix timestamps in milliseconds (from utils use ConvertTimestamp), value (eg. 75000000000): item silver value
+            ApiResponse: standardized response. Returned values in content.history: key (eg. "1745193600000"): Unix timestamps in milliseconds (from utils use ConvertTimestamp), value (eg. 75000000000): item silver value
         """
         # ! Not working: can get valid response, but it makes no sense.
         return self.__makerequest("POST", "GetMarketPriceInfo", params={"lang": self.__apilang}, jsondata=[{"id": id, "sid": sid}])
@@ -161,7 +202,7 @@ class Market:
             ids (str): itemid(s).
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items matching the search criteria.
         """
         return self.__makerequest("GET", "GetWorldMarketSearchList", params={
             "ids": ids,
@@ -175,7 +216,7 @@ class Market:
             ids (list[str]): itemid(s).
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items matching the search criteria.
         """
         return self.__makerequest("POST", "GetWorldMarketSearchList", jsondata=ids, params={"lang": self.__apilang})
     
@@ -187,7 +228,7 @@ class Market:
             subcategory (str): subcategory
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items in the specified category or subcategory.
         """
         return self.__makerequest("GET", "GetWorldMarketList", params={
             "mainCategory": maincategory,
@@ -203,7 +244,7 @@ class Market:
             subcategory (str): subcategory
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items in the specified category or subcategory.
         """
         return self.__makerequest("POST", "GetWorldMarketList", jsondata={"mainCategory":maincategory, "subCategory": subcategory}, params={"lang":self.__apilang})
     
@@ -214,7 +255,7 @@ class Market:
             id (list[str]): itemid(s)
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their subid(s) (enhancement level).
         """
         return self.__makerequest("GET", "GetWorldMarketSubList", params={"id":id, "lang":self.__apilang})
     
@@ -225,7 +266,7 @@ class Market:
             id (str): itemid(s)
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their subid(s) (enhancement level).
         """
         return self.__makerequest("POST", "GetWorldMarketSubList", jsondata=id, params={"lang":self.__apilang})
     
@@ -237,7 +278,7 @@ class Market:
             sid (list[str]): subid(s)
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items' bidding information.
         """
         return self.__makerequest("GET", "GetBiddingInfoList", params={"id": id, "sid":sid, "lang":self.__apilang})
     
@@ -249,7 +290,7 @@ class Market:
             sid (list[str]): subid(s)
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items' bidding information.
         """
         # ! Not working: An unexpected error occurred
         return self.__makerequest("POST", "GetBiddingInfoList", jsondata=[{"id":id, "sid":sid}], params={"lang":self.__apilang})
@@ -258,7 +299,7 @@ class Market:
         """Convenience method for getting all pearl items.
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of pearl items.
         """
         return self.__makerequest("GET", "pearlItems", params={"lang":self.__apilang})
     
@@ -266,7 +307,7 @@ class Market:
         """Convenience method for getting all pearl items.
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of pearl items.
         """
         return self.__makerequest("POST", "pearlItems", params={"lang":self.__apilang})
     
@@ -274,7 +315,7 @@ class Market:
         """Convenience method for getting all items currently available on the market.
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently available on the market.
         """
         # ! Not working: One or more requests returned invalid data (probably blocked by Imperva). Try again later.
         return self.__makerequest("GET", "market", params={"lang":self.__apilang})
@@ -283,7 +324,7 @@ class Market:
         """Convenience method for getting all items currently available on the market.
 
         Returns:
-            VeliaInnResponse: Standardized response.
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently available on the market.
         """
         # ! Not working: One or more requests returned invalid data (probably blocked by Imperva). Try again later.
         return self.__makerequest("POST", "market", params={"lang":self.__apilang})

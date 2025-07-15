@@ -43,8 +43,8 @@
     <!-- <a href="https://github.com/Fizzor96/bdomarket"><strong>Explore the docs »</strong></a> -->
     <!-- <br /> -->
     <br />
-    <!-- <a href="https://github.com/Fizzor96/bdomarket">View Demo</a>
-    &middot; -->
+    <a href="https://pypi.org/project/bdomarket/">PyPI</a>
+    &middot;
     <a href="https://github.com/Fizzor96/bdomarket/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     &middot;
     <a href="https://github.com/Fizzor96/bdomarket/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
