@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "requests>=2.25.1",
-        "beautifulsoup4>=4.13.0"
+        "beautifulsoup4>=4.13.1"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
