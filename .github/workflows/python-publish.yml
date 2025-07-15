@@ -28,7 +28,7 @@ jobs:
       - name: Build package (wheel + sdist)
         run: |
           cd src
-          python -m build --sdist --wheel --outdir dist
+          python -m build --outdir ../build/dist
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

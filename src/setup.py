@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 import os
 
-here = os.path.abspath(os.path.dirname(__file__))
-readme_path = os.path.join(here, "../README.md")
+# here = os.path.abspath(os.path.dirname(__file__))
+# readme_path = os.path.join(here, "..\\README.md")
 
-with open(readme_path, "r") as f:
-    description = f.read()
+# with open(readme_path, "r") as f:
+#     description = f.read()
 
 setup(
     name='bdomarket',
@@ -22,7 +22,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     url="https://github.com/Fizzor96/bdomarket",
-    long_description=description,
+    # long_description=description,
     long_description_content_type="text/markdown",
     python_requires=">=3.8"
 )
