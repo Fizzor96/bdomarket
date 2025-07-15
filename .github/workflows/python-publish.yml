@@ -23,10 +23,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
 
+      - name: Create build directories
+        run: |
+          mkdir -p build/egginfo build/temp_build build/dist
+
       - name: Build release distributions
         run: |
-          cd src
-          python setup.py egg_info --egg-base ../build/egginfo build --build-base ../build/temp_build sdist --dist-dir ../build/dist bdist_wheel --dist-dir ../build/dist
+          python src/setup.py egg_info --egg-base build/egginfo build --build-base build/temp_build sdist --dist-dir build/dist bdist_wheel --dist-dir build/dist
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
