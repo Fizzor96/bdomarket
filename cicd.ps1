@@ -10,7 +10,7 @@ poetry version patch
 $version = poetry version --short
 git add .
 git commit -am "Release version v$version"
-git push origin main
+git push origin master
 git tag $version
 git push origin --tags
 
