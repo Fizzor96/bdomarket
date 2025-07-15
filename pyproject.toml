@@ -1,6 +1,6 @@
 [project]
 name = "bdomarket"
-version = "0.1.11"
+version = "0.1.12"
 description = "API client for BDO market"
 authors = [
     {name = "Szőke Dominik", email = "szokedominik@gmail.com"}
