@@ -12,7 +12,7 @@ setup(
     version='0.1.7',
     author="Szőke Dominik",
     packages=find_packages(),
-    install_reqires=[
+    install_requires=[
         "requests>=2.25.1",
         "beautifulsoup4>=4.13.0"
     ],
