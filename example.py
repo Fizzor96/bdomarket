@@ -7,7 +7,7 @@ market.GetWorldMarketWaitList().content
 market.GetWorldMarketWaitList().statuscode
 market.GetWorldMarketWaitList().success
 market.GetWorldMarketWaitList().message # this is kinda pointless, devs did not implement such functionality
-iterable = market.GetWorldMarketWaitList().GetIterableContent() # Deserialize to a Python object.
+iterable = market.GetWorldMarketWaitList().Deserialize() # Deserialize to a Python object.
 for item in iterable:
     print(item)
 market.GetWorldMarketWaitList().SaveToFile("responses/waitlist/get.json") # saving output to file
@@ -74,6 +74,6 @@ print(market.GetMarket())
 print(market.PostGetMarket())
 
 # Boss timer
-bt = bdomarket.timers.Boss(bdomarket.timers.utils.Server.EU)
+bt = bdomarket.timers.Boss(bdomarket.timers.Server.EU)
 bt.Scrape()
 print(bt.GetTimerJSON())
