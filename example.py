@@ -74,6 +74,6 @@ print(market.GetMarket())
 print(market.PostGetMarket())
 
 # Boss timer
-bt = bdomarket.timers.Boss()
+bt = bdomarket.timers.Boss(bdomarket.timers.utils.Server.EU)
 bt.Scrape()
 print(bt.GetTimerJSON())

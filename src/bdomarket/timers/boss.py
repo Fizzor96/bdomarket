@@ -1,10 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+from .utils import Server
 
 class Boss():
-    def __init__(self):
-        self.__url = "https://mmotimer.com/bdo/?server=eu"
+    def __init__(self, server: Server = Server.EU):
+        self.__url = f"https://mmotimer.com/bdo/?server={server.value}"
         self.__data = []
             
     def Scrape(self):
