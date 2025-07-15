@@ -40,6 +40,7 @@ jobs:
 
   pypi-publish:
     name: upload release to PyPI
+    needs: release-build
     runs-on: ubuntu-latest
     # Specifying a GitHub environment is optional, but strongly encouraged
     environment: pypi
