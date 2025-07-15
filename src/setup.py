@@ -9,7 +9,7 @@ with open(readme_path, "r") as f:
 
 setup(
     name='bdomarket',
-    version='0.1.6',
+    version='0.1.7',
     author="Szőke Dominik",
     packages=find_packages(),
     install_reqires=[
