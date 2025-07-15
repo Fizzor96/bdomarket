@@ -209,4 +209,5 @@ __marimo__/
 build/
 deprecated/
 responses/
+icons/
 workflow.ps1

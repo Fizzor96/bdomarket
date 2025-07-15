@@ -77,3 +77,10 @@ print(market.PostGetMarket())
 bt = bdomarket.timers.Boss(bdomarket.timers.Server.EU)
 bt.Scrape()
 print(bt.GetTimerJSON())
+
+# Item
+item = bdomarket.item.Item()
+print(item)
+print(item.to_dict())
+item.GetIcon(r"D:\Development\Python\bdomarket\icons", False, bdomarket.item.ItemProp.ID)  # Example usage of GetIcon method isrelative=False
+item.GetIcon("icons", True, bdomarket.item.ItemProp.NAME)  # Example usage of GetIcon method isrelative=True
