@@ -30,17 +30,9 @@ jobs:
           cd src
           python -m build --outdir ../build/dist
 
-      # - name: Publish to PyPI (trusted publisher)
-      #   uses: pypa/gh-action-pypi-publish@release/v1
-
-      # - name: Publish to PyPI
-      #   uses: pypa/gh-action-pypi-publish@release/v1
-      #   with:
-      #     password: ${{ secrets.TWINE_PASSWORD }}
-
   pypi-publish:
     name: upload release to PyPI
-    needs: release-build
+    needs: realease-build
     runs-on: ubuntu-latest
     # Specifying a GitHub environment is optional, but strongly encouraged
     environment: pypi
