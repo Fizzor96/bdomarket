@@ -236,6 +236,78 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
+### Example:
+
+```python
+market.GetBiddingInfo(["735008", "731109"], ["19", "20"]).SaveToFile("responses/bidding/get.json")
+```
+
+Outputs:
+
+```json
+{
+  "success": true,
+  "statuscode": 200,
+  "message": "No message provided",
+  "content": [
+    {
+      "name": "Blackstar Shuriken",
+      "id": 735008,
+      "sid": 19,
+      "orders": [
+        {
+          "price": 14500000000,
+          "sellers": 1,
+          "buyers": 0
+        },
+        {
+          "price": 15500000000,
+          "sellers": 1,
+          "buyers": 0
+        },
+        {
+          "price": 14900000000,
+          "sellers": 4,
+          "buyers": 0
+        },
+        {
+          "price": 14700000000,
+          "sellers": 0,
+          "buyers": 0
+        }
+      ]
+    },
+    {
+      "name": "Blackstar Sura Katana",
+      "id": 731109,
+      "sid": 20,
+      "orders": [
+        {
+          "price": 72500000000,
+          "sellers": 1,
+          "buyers": 0
+        },
+        {
+          "price": 73500000000,
+          "sellers": 1,
+          "buyers": 0
+        },
+        {
+          "price": 73000000000,
+          "sellers": 1,
+          "buyers": 0
+        },
+        {
+          "price": 70500000000,
+          "sellers": 0,
+          "buyers": 0
+        }
+      ]
+    }
+  ]
+}
+```
+
 ### Top contributors:
 
 <a href="https://github.com/Fizzor96/bdomarket/graphs/contributors">
