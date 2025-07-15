@@ -72,3 +72,8 @@ market.GetMarket().SaveToFile("responses/market/get.json")
 market.PostGetMarket().SaveToFile("responses/market/post.json")
 print(market.GetMarket())
 print(market.PostGetMarket())
+
+# Boss timer
+bt = bdomarket.timers.Boss()
+bt.Scrape()
+print(bt.GetTimerJSON())

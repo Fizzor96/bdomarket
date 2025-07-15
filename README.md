@@ -40,8 +40,8 @@
   <p align="center">
     API client for BDO market data
     <br />
-    <a href="https://github.com/Fizzor96/bdomarket"><strong>Explore the docs »</strong></a>
-    <br />
+    <!-- <a href="https://github.com/Fizzor96/bdomarket"><strong>Explore the docs »</strong></a> -->
+    <!-- <br /> -->
     <br />
     <a href="https://github.com/Fizzor96/bdomarket">View Demo</a>
     &middot;
@@ -196,6 +196,12 @@ market.GetMarket().SaveToFile("responses/market/get.json")
 market.PostGetMarket().SaveToFile("responses/market/post.json")
 print(market.GetMarket())
 print(market.PostGetMarket())
+
+# Boss timer
+bt = bdomarket.timers.Boss()
+bt.Scrape()
+print(bt.GetTimerJSON())
+
 
 
 ```

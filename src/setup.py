@@ -7,15 +7,14 @@ readme_path = os.path.join(here, "../README.md")
 with open(readme_path, "r") as f:
     description = f.read()
 
-print(description)
-
 setup(
     name='bdomarket',
-    version='0.1.3',
+    version='0.1.5',
     author="Szőke Dominik",
     packages=find_packages(),
     install_reqires=[
-        "requests>=2.25.1"
+        "requests>=2.25.1",
+        "beautifulsoup4>=4.13.0"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
