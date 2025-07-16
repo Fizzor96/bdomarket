@@ -70,7 +70,7 @@ class ApiResponse:
         except:
             raise Exception("Could not get IterableObject!")
         
-    def SaveToFile(self, path: str):
+    def SaveToFile(self, path: str, mode: str = "w"):
         """Save the ApiResponse content to a file in JSON format.
 
         Args:
@@ -85,7 +85,7 @@ class ApiResponse:
             "message": self.message,
             "content": json.loads(self.content)
         }
-        with open(path, "w", encoding="utf-8") as file:
+        with open(path, mode, encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=2)
 
 def ConvertTimestamp(timestamp_ms:float, format: str = "%Y-%m-%d") -> str:
@@ -102,6 +102,13 @@ def ConvertTimestamp(timestamp_ms:float, format: str = "%Y-%m-%d") -> str:
 
 class Market:
     def __init__(self, region: AvailableRegions = AvailableRegions.EU, apiversion: AvailableApiVersions = AvailableApiVersions.V2, language: SupportedLanguages = SupportedLanguages.English):
+        """ Initializes the Market object with the specified region, API version, and language.
+
+        Args:
+            region (AvailableRegions, optional): The region to use for the API requests. Defaults to AvailableRegions.EU.
+            apiversion (AvailableApiVersions, optional): The API version to use for the requests. Defaults to AvailableApiVersions.V2.
+            language (SupportedLanguages, optional): The language to use for the API responses. Defaults to SupportedLanguages.English.
+        """
         self.__baseurl = "https://api.arsha.io"
         self.__apiversion = apiversion.value
         self.__apiregion = region.value
@@ -328,3 +335,57 @@ class Market:
         """
         # ! Not working: One or more requests returned invalid data (probably blocked by Imperva). Try again later.
         return self.__makerequest("POST", "market", params={"lang":self.__apilang})
+    
+    def GetItem(self, ids:list[str] = []) -> ApiResponse:
+        """Get item information by its id(s).
+
+        Args:
+            ids (list[str], optional): A list of item ids to retrieve information for. Defaults to an empty list.
+
+        Returns:
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their id, name, and sid.
+        If no ids are provided, returns an empty ApiResponse.
+        """
+        if not ids:
+            return ApiResponse()
+        response = requests.request(method="GET", 
+                                    url=f"{self.__baseurl}/util/db", 
+                                    params={"id":ids, "lang":self.__apilang},
+                                    timeout=10)
+        
+        return ApiResponse(success= True if 199 < response.status_code < 299 else False, 
+                          statuscode=response.status_code, 
+                          message=response.reason if response.reason else "No message provided",
+                          content=json.dumps(json.loads(response.content), indent=2, ensure_ascii=False))
+    
+        
+    def ItemDatabaseDump(self, startid: int, endid: int, chunksize: int = 100) -> ApiResponse:
+        """Dump the item database from startid to endid in chunks of chunksize.
+
+        Args:
+            startid (int): _description_
+            endid (int): _description_
+            chunksize (int, optional): The number of items to fetch in each request. Defaults to 100.
+
+        Returns:
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their id, name, and sid.
+        """
+        chunksize = min(chunksize, 100)  # API limit
+
+        items = []
+        for i in range(startid, endid + 1, chunksize):
+            ids = [str(j) for j in range(i, min(i + chunksize, endid + 1))]
+            response = self.GetItem(ids)
+
+            if response.success:
+                deserialized = response.Deserialize() or []
+                items.extend(item for item in deserialized if item is not None)
+            else:
+                print(f"Error fetching items {ids}: {response.message}")
+
+        return ApiResponse(
+            content=json.dumps(items, indent=2, ensure_ascii=False),
+            success=True,
+            statuscode=200,
+            message="Item database dump completed successfully."
+        )

@@ -1,86 +1,92 @@
 import bdomarket
 
-market = bdomarket.Market(bdomarket.AvailableRegions.EU, bdomarket.AvailableApiVersions.V2, bdomarket.SupportedLanguages.English)
+# -------------------------------
+# 1. Initialize Market Interface
+# -------------------------------
+# Set up the market object for the EU region, API version 2, and English language.
+market = bdomarket.Market(
+    bdomarket.AvailableRegions.EU,
+    bdomarket.AvailableApiVersions.V2,
+    bdomarket.SupportedLanguages.English
+)
 
-# Each function return ApiResponse obj - this can be used to acess information more easier
-market.GetWorldMarketWaitList().content
-market.GetWorldMarketWaitList().statuscode
-market.GetWorldMarketWaitList().success
-market.GetWorldMarketWaitList().message # this is kinda pointless, devs did not implement such functionality
-iterable = market.GetWorldMarketWaitList().Deserialize() # Deserialize to a Python object.
-for item in iterable:
+# -------------------------------
+# 2. Boss Timer Functionality
+# -------------------------------
+# Fetch and display world boss spawn times for the EU server.
+boss_timer = bdomarket.timers.Boss(bdomarket.timers.Server.EU).Scrape()
+print("Boss Timer (Python object):")
+print(boss_timer.GetTimer())
+print("\nBoss Timer (JSON):")
+print(boss_timer.GetTimerJSON())
+
+# -------------------------------
+# 3. Market Wait List
+# -------------------------------
+# Retrieve the current market waitlist and save it to a file.
+waitlist_response = market.GetWorldMarketWaitList()
+print("\nMarket Wait List (content):")
+print(waitlist_response.content)
+waitlist_response.SaveToFile("responses/waitlist/get.json")
+
+# Deserialize waitlist to Python objects and print each item.
+print("\nDeserialized Wait List Items:")
+for item in waitlist_response.Deserialize():
     print(item)
-market.GetWorldMarketWaitList().SaveToFile("responses/waitlist/get.json") # saving output to file
-print(bdomarket.ConvertTimestamp(1745193600000)) # can be useful if you don't know how to convert Unix timestamps to human readable format. Note (Post)GetMarketPriceInfo return timestamps...
 
-# WaitList
-market.GetWorldMarketWaitList().SaveToFile("responses/waitlist/get.json")
-market.PostGetWorldMarketWaitList().SaveToFile("responses/waitlist/post.json")
-print(market.GetWorldMarketWaitList())
-print(market.PostGetWorldMarketWaitList())
+# -------------------------------
+# 4. Item Queries
+# -------------------------------
+# Fetch information for multiple items by their IDs and save to file.
+item_ids = ["3", "9505", "14870"]
+items_response = market.GetItem(item_ids)
+items_response.SaveToFile("responses/items/get.json")
+print("\nFetched Items:")
+print(items_response.content)
 
-# HotList
-market.GetWorldMarketHotList().SaveToFile("responses/hotlist/get.json")
-market.PostGetWorldMarketHotList().SaveToFile("responses/hotlist/post.json")
-print(market.GetWorldMarketHotList())
-print(market.PostGetWorldMarketHotList())
+# Dump a range of items (IDs 0 to 250) to a file.
+market.ItemDatabaseDump(0, 250).SaveToFile("responses/itemdump/dump.json")
 
-# List
+# -------------------------------
+# 5. Market Lists and SubLists
+# -------------------------------
+# Get and save various market lists.
 market.GetWorldMarketList("1", "1").SaveToFile("responses/list/get.json")
-market.PostGetWorldMarketList("1", "1").SaveToFile("responses/list/post.json")
-print(market.GetWorldMarketList("1", "1"))
-print(market.PostGetWorldMarketList("1", "1"))
-
-
-# SubList
 market.GetWorldMarketSubList(["735008", "731109"]).SaveToFile("responses/sublist/get.json")
-market.PostGetWorldMarketSubList(["735008", "731109"]).SaveToFile("responses/sublist/post.json")
-print(market.GetWorldMarketSubList(["735008", "731109"]))
-print(market.PostGetWorldMarketSubList(["735008", "731109"]))
-
-
-# SearchList
 market.GetWorldMarketSearchList(["735008", "731109"]).SaveToFile("responses/searchlist/get.json")
-market.PostGetWorldMarketSearchList(["735008", "731109"]).SaveToFile("responses/searchlist/post.json")
-print(market.GetWorldMarketSearchList(["735008", "731109"]))
-print(market.PostGetWorldMarketSearchList(["735008", "731109"]))
 
-
-# BiddingInfo
+# -------------------------------
+# 6. Bidding and Price Info
+# -------------------------------
+# Fetch and save bidding and price information for specific items.
+# NOTE: Timestamp Conversion Utility is used to convert Unix timestamps to human-readable format.
 market.GetBiddingInfo(["735008", "731109"], ["19", "20"]).SaveToFile("responses/bidding/get.json")
-market.PostGetBiddingInfo(["735008", "731109"], ["19", "20"]).SaveToFile("responses/bidding/post.json")
-print(market.GetBiddingInfo(["735008", "731109"], ["19", "20"]))
-print(market.PostGetBiddingInfo(["735008", "731109"], ["19", "20"]))
-
-
-# PriceInfo
 market.GetMarketPriceInfo(["735008", "731109"], ["19", "20"]).SaveToFile("responses/priceinfo/get.json")
-market.PostGetMarketPriceInfo(["735008"], ["20"]).SaveToFile("responses/priceinfo/post.json")
-print(market.GetMarketPriceInfo(["735008", "731109"], ["19", "20"]))
-print(market.PostGetMarketPriceInfo(["735008"], ["20"]))
 
-
-# PearItems
+# -------------------------------
+# 7. Pearl Items and Market Info
+# -------------------------------
+# Retrieve and save pearl shop items and overall market info.
 market.GetPearlItems().SaveToFile("responses/pearlitems/get.json")
-market.PostGetPearlItems().SaveToFile("responses/pearlitems/post.json")
-print(market.GetPearlItems())
-print(market.PostGetPearlItems())
-
-
-# Market
 market.GetMarket().SaveToFile("responses/market/get.json")
-market.PostGetMarket().SaveToFile("responses/market/post.json")
-print(market.GetMarket())
-print(market.PostGetMarket())
 
-# Boss timer
-bt = bdomarket.timers.Boss(bdomarket.timers.Server.EU)
-bt.Scrape()
-print(bt.GetTimerJSON())
+# -------------------------------
+# 8. Timestamp Conversion Utility
+# -------------------------------
+# Convert a Unix timestamp (in ms) to a human-readable format.
+timestamp = 1745193600000
+print("\nConverted Timestamp:")
+print(bdomarket.ConvertTimestamp(timestamp))
 
-# Item
+# -------------------------------
+# 9. Item Object Usage
+# -------------------------------
+# Create an Item object, print its details, and download its icon.
 item = bdomarket.item.Item()
+print("\nItem Object:")
 print(item)
-print(item.to_dict())
-item.GetIcon(r"D:\Development\Python\bdomarket\icons", False, bdomarket.item.ItemProp.ID)  # Example usage of GetIcon method isrelative=False
-item.GetIcon("icons", True, bdomarket.item.ItemProp.NAME)  # Example usage of GetIcon method isrelative=True
+print("Item as dict:", item.to_dict())
+
+# Download the item's icon by ID (absolute path) and by name (relative path).
+item.GetIcon(r"D:\bdomarket\icons", False, bdomarket.item.ItemProp.ID)
+item.GetIcon("icons", True, bdomarket.item.ItemProp.NAME)

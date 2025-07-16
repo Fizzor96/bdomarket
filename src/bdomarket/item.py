@@ -18,6 +18,8 @@ class Item:
         self.id = id
         self.sid = sid
         self.name = name
+        # TODO: grade
+        self.grade = 0
 
     def __repr__(self):
         """Representation of the Item object.
