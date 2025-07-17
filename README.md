@@ -96,10 +96,15 @@ This code is a simple and well-structured API client for BDO market data, built 
 - **Timestamp Conversion**: Convert Unix timestamps from API responses into human-readable date and time strings.
 - **Multi-Region and Multi-Language Support**: Easily switch between different BDO regions (EU, NA, etc.) and supported languages.
 - **Convenient Utilities**: Download item icons, print readable representations of items, and more.
+- **Regional Pig Cave Status**: Easily fetch pig cave status for different regions.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+### Donate
 
+If you like my project, you can buy me a coffee, many thanks ❤️ !
+
+<a href="https://www.buymeacoffee.com/fizzor"><img src="images/bmc-button.png" width="120" height="30"/></a>
 
 ### Built With
 
