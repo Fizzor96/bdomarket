@@ -140,9 +140,9 @@ import bdomarket
 # -------------------------------
 # Set up the market object for the EU region, API version 2, and English language.
 market = bdomarket.Market(
-    bdomarket.AvailableRegions.EU,
-    bdomarket.AvailableApiVersions.V2,
-    bdomarket.SupportedLanguages.English
+    bdomarket.MarketRegion.EU,
+    bdomarket.ApiVersion.V2,
+    bdomarket.Locale.English
 )
 
 # -------------------------------
@@ -211,7 +211,9 @@ market.GetMarket().SaveToFile("responses/market/get.json")
 # Convert a Unix timestamp (in ms) to a human-readable format.
 timestamp = 1745193600000
 print("\nConverted Timestamp:")
-print(bdomarket.ConvertTimestamp(timestamp))
+utcdate = bdomarket.TimestampToDatetime(timestamp)
+print(utcdate)
+print(bdomarket.DatetimeToTimestamp(utcdate))
 
 # -------------------------------
 # 9. Item Object Usage
@@ -221,6 +223,13 @@ item = bdomarket.item.Item()
 print("\nItem Object:")
 print(item)
 print("Item as dict:", item.to_dict())
+
+# -------------------------------
+# 10. Pig Cave Status
+# -------------------------------
+# Convert a Unix timestamp (in ms) to a human-readable format.
+pigcavestatus = market.GetPigCaveStatus(bdomarket.PigCave.EU)
+print(pigcavestatus)
 
 # Download the item's icon by ID (absolute path) and by name (relative path).
 item.GetIcon(r"D:\bdomarket\icons", False, bdomarket.item.ItemProp.ID)

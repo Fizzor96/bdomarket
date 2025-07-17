@@ -2,16 +2,16 @@ import requests
 import json
 from enum import Enum
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 # source: https://www.postman.com/bdomarket/arsha-io-bdo-market-api/overview
 
-class AvailableApiVersions(Enum):
+class ApiVersion(Enum):
     V1 = "v1"
     V2 = "v2"
 
-class AvailableRegions(Enum):
+class MarketRegion(Enum):
     NA = "na"
     EU = "eu"
     SEA = "sea"
@@ -26,7 +26,7 @@ class AvailableRegions(Enum):
     CONSOLE_NA = "console_na"
     CONSOLE_ASIA = "console_asia"
     
-class SupportedLanguages(Enum):
+class Locale(Enum):
     English = "en"
     German = "de"
     French = "fr"
@@ -40,6 +40,34 @@ class SupportedLanguages(Enum):
     Turkish = "tr"
     ChineseTaiwan = "tw"
     ChineseMainland = "cn"
+    
+class PigCave(Enum):
+    EU = "eupig"
+    JP = "jpig"
+    KR = "krpig"
+    RU = "rupig"
+    SA = "sapig"
+    TW = "twpig"
+    ASIA = "asiapig"
+    MENA = "menapig"
+    
+def ConvertTimestamp(timestamp_ms:float, format: str = "%Y-%m-%d") -> str:
+    """Convert a timestamp in milliseconds to a formatted date string.
+
+    Args:
+        timestamp_ms (float): The timestamp in milliseconds to convert.
+        format (str, optional): The format string for the output date. Defaults to "%Y-%m-%d".
+
+    Returns:
+        str: A formatted date string
+    """
+    return datetime.utcfromtimestamp(timestamp_ms / 1000).strftime(format)
+
+def TimestampToDatetime(timestamp):
+    return datetime.fromtimestamp(timestamp, timezone.utc)
+
+def DatetimeToTimestamp(dt):
+    return datetime.timestamp(dt)
         
 class ApiResponse:
     def __init__(self, success: bool = False, statuscode: int = -1, message: str = "", content: str = ""):
@@ -88,20 +116,8 @@ class ApiResponse:
         with open(path, mode, encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=2)
 
-def ConvertTimestamp(timestamp_ms:float, format: str = "%Y-%m-%d") -> str:
-    """Convert a timestamp in milliseconds to a formatted date string.
-
-    Args:
-        timestamp_ms (float): The timestamp in milliseconds to convert.
-        format (str, optional): The format string for the output date. Defaults to "%Y-%m-%d".
-
-    Returns:
-        str: A formatted date string
-    """
-    return datetime.utcfromtimestamp(timestamp_ms / 1000).strftime(format)
-
 class Market:
-    def __init__(self, region: AvailableRegions = AvailableRegions.EU, apiversion: AvailableApiVersions = AvailableApiVersions.V2, language: SupportedLanguages = SupportedLanguages.English):
+    def __init__(self, region: MarketRegion = MarketRegion.EU, apiversion: ApiVersion = ApiVersion.V2, language: Locale = Locale.English):
         """ Initializes the Market object with the specified region, API version, and language.
 
         Args:
@@ -388,4 +404,21 @@ class Market:
             success=True,
             statuscode=200,
             message="Item database dump completed successfully."
+        )
+        
+    def GetPigCaveStatus(self, region: PigCave = PigCave.EU) -> ApiResponse:
+        """Get Pig Cave status by region (garmoth.com data)
+
+        Args:
+            region (PigCave, optional): Region and endpoint at the same time. Defaults to PigCave.EU.
+
+        Returns:
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their id, name, and sid.
+        """
+        response = requests.request("GET", f"http://node63.lunes.host:3132/{region.value}")
+        return ApiResponse(
+            success=True if 199 < response.status_code < 299 else False,
+            statuscode=response.status_code,
+            message=response.reason if response.reason else "No message provided",
+            content=response.text
         )
