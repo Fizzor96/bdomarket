@@ -413,7 +413,7 @@ class Market:
             region (PigCave, optional): Region and endpoint at the same time. Defaults to PigCave.EU.
 
         Returns:
-            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their id, name, and sid.
+            ApiResponse: An ApiResponse object containing the success status, status code, message, and content of the response.
         """
         response = requests.request("GET", f"http://node63.lunes.host:3132/{region.value}")
         return ApiResponse(
