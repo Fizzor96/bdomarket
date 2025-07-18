@@ -427,7 +427,7 @@ class Market:
                 return ApiResponse(
                     success=response.status >= 200 and response.status <= 299,
                     status_code=response.status,
-                    message=f"{region.value} - {response.reason}" or "No message provided",
+                    message=f"{region.value}" or "No message provided",
                     content=content
                 )
 

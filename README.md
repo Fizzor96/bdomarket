@@ -23,6 +23,7 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![project_license][license-shield]][license-url]
+[![discord][discord-shield]][discord-link]
 <!-- [![LinkedIn][linkedin-shield]][linkedin-url] -->
 
 
@@ -486,3 +487,6 @@ Project Link: [https://github.com/Fizzor96/bdomarket](https://github.com/Fizzor9
 [product-screenshot]: images/screenshot.png
 [Python-url]: https://www.python.org/
 [Python.com]: https://img.shields.io/badge/python-0769AD?style=for-the-badge&logo=python&logoColor=white
+
+[discord-shield]: https://img.shields.io/badge/Discord-blue?style=for-the-badge&logo=Discord&logoColor=white&logoSize=auto
+[discord-link]: https://discord.gg/hSWHfhSpDe
