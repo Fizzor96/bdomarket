@@ -7,7 +7,7 @@ param(
 # Version bumping and tagging
 # poetry version major
 # poetry version minor
-# poetry version patch
+poetry version patch
 # Commit the version change and push to the main branch
 $version = poetry version --short
 
