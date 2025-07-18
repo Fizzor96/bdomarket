@@ -124,7 +124,7 @@ Easily retrieve market data, hotlist items, price history, bidding info, and mor
 ### Prerequisites
 
 Python installed on your system.
-* Python >= 3.8
+* Python >= 3.9
 
 ### Installation
    ```sh

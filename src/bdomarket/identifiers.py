@@ -35,8 +35,9 @@ class Locale(Enum):
     ChineseMainland = "cn"
 
 class PigCave(Enum):
+    NA = "napig"
     EU = "eupig"
-    JP = "jpig"
+    JP = "jppig"
     KR = "krpig"
     RU = "rupig"
     SA = "sapig"
