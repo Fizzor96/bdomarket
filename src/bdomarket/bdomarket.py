@@ -1,123 +1,53 @@
 import requests
 import json
-from enum import Enum
-import json
-from datetime import datetime, timezone
 import os
+import aiohttp
+import asyncio
+from typing import List, Optional, Dict, Any
+from .identifiers import PigCave, ApiVersion, Locale, MarketRegion
+from .utils import timestamp_to_datetime
 
-# source: https://www.postman.com/bdomarket/arsha-io-bdo-market-api/overview
+# TODO: implement syncfunctions
 
-class ApiVersion(Enum):
-    V1 = "v1"
-    V2 = "v2"
-
-class MarketRegion(Enum):
-    NA = "na"
-    EU = "eu"
-    SEA = "sea"
-    MENA = "mena"
-    KR = "kr"
-    RU = "ru"
-    JP = "jp"
-    TH = "th"
-    TW = "tw"
-    SA = "sa"
-    CONSOLE_EU = "console_eu"
-    CONSOLE_NA = "console_na"
-    CONSOLE_ASIA = "console_asia"
-    
-class Locale(Enum):
-    English = "en"
-    German = "de"
-    French = "fr"
-    Russian = "ru"
-    SpanishEU = "es"
-    PortugueseRedFox = "sp"
-    Portuguese = "pt"
-    Japanese = "jp"
-    Korean = "kr"
-    Thai = "th"
-    Turkish = "tr"
-    ChineseTaiwan = "tw"
-    ChineseMainland = "cn"
-    
-class PigCave(Enum):
-    EU = "eupig"
-    JP = "jpig"
-    KR = "krpig"
-    RU = "rupig"
-    SA = "sapig"
-    TW = "twpig"
-    ASIA = "asiapig"
-    MENA = "menapig"
-    
-def ConvertTimestamp(timestamp_ms:float, format: str = "%Y-%m-%d") -> str:
-    """Convert a timestamp in milliseconds to a formatted date string.
-
-    Args:
-        timestamp_ms (float): The timestamp in milliseconds to convert.
-        format (str, optional): The format string for the output date. Defaults to "%Y-%m-%d".
-
-    Returns:
-        str: A formatted date string
-    """
-    return datetime.utcfromtimestamp(timestamp_ms / 1000).strftime(format)
-
-def TimestampToDatetime(timestamp):
-    return datetime.fromtimestamp(timestamp, timezone.utc)
-
-def DatetimeToTimestamp(dt):
-    return datetime.timestamp(dt)
-        
 class ApiResponse:
-    def __init__(self, success: bool = False, statuscode: int = -1, message: str = "", content: str = ""):
+    def __init__(self, success: bool = False, status_code: int = -1, message: str = "", content: str = ""):
         self.success = success
-        self.statuscode = statuscode
-        self.message: str = message
-        self.content: str = content if content else ""
-        
-    def __str__(self):
+        self.status_code = status_code
+        self.message = message
+        self.content = content
+
+    def __str__(self) -> str:
         """String representation of the ApiResponse object.
 
         Returns:
             str: A string containing the success status, status code, message, and content of the response.
         """
-        return f"success: {self.success}\nstatuscode: {self.statuscode}\nmessage: {self.message}\ncontent: {self.content}"
-    
-    def Deserialize(self):
-        """Deserialize the content of the ApiResponse object from JSON format.
+        return f"success: {self.success}\nstatus_code: {self.status_code}\nmessage: {self.message}\ncontent: {json.dumps(self.content, indent=2, ensure_ascii=False)}"
 
-        Raises:
-            Exception: If the content cannot be deserialized into a Python object.
+    # def deserialize(self) -> Dict[str, Any]:
+    #     try:
+    #         return json.loads(self.content) if self.content else {}
+    #     except json.JSONDecodeError:
+    #         raise ValueError("Failed to deserialize content")
 
-        Returns:
-            dict: The deserialized content as a Python dictionary.
-        """
-        try:
-            return json.loads(self.content)
-        except:
-            raise Exception("Could not get IterableObject!")
-        
-    def SaveToFile(self, path: str, mode: str = "w"):
+    def save_to_file(self, path: str, mode: str = "w") -> None:
         """Save the ApiResponse content to a file in JSON format.
 
         Args:
             path (str): The file path where the content should be saved.
         """
-        # TODO: improve this like in Item.GetIcon
-        folder = os.path.dirname(path)
-        os.makedirs(folder, exist_ok=True)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         data = {
             "success": self.success,
-            "statuscode": self.statuscode,
+            "status_code": self.status_code,
             "message": self.message,
-            "content": json.loads(self.content)
+            "content": self.content
         }
-        with open(path, mode, encoding="utf-8") as file:
-            json.dump(data, file, ensure_ascii=False, indent=2)
+        with open(path, mode, encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
 
 class Market:
-    def __init__(self, region: MarketRegion = MarketRegion.EU, apiversion: ApiVersion = ApiVersion.V2, language: Locale = Locale.English):
+    def __init__(self, region: MarketRegion = MarketRegion.EU, api_version: ApiVersion = ApiVersion.V2, language: Locale = Locale.English):
         """ Initializes the Market object with the specified region, API version, and language.
 
         Args:
@@ -125,100 +55,162 @@ class Market:
             apiversion (AvailableApiVersions, optional): The API version to use for the requests. Defaults to AvailableApiVersions.V2.
             language (SupportedLanguages, optional): The language to use for the API responses. Defaults to SupportedLanguages.English.
         """
-        self.__baseurl = "https://api.arsha.io"
-        self.__apiversion = apiversion.value
-        self.__apiregion = region.value
-        self.__apilang = language.value
+        self._base_url = "https://api.arsha.io"
+        self._api_version = api_version.value
+        self._api_region = region.value
+        self._api_lang = language.value
+        self._session = requests.Session()
+
+    async def _make_request_async(self, method: str, endpoint: str, json_data: Optional[Any] = None,
+                                data: Optional[Any] = None, headers: Optional[Dict] = None,
+                                params: Optional[Dict] = None) -> ApiResponse:
+        async with aiohttp.ClientSession() as session:
+            async with session.request(
+                method=method,
+                url=f"{self._base_url}/{self._api_version}/{self._api_region}/{endpoint}",
+                params=params,
+                json=json_data,
+                data=data,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=10)
+            ) as response:
+                # try:
+                #     content = await response.json()
+                # except aiohttp.ContentTypeError:
+                #     content = await response.text()
+                return ApiResponse(
+                    success=response.status >= 200 and response.status <= 299,
+                    status_code=response.status,
+                    message=response.reason or "No message provided",
+                    # content=content if isinstance(content, dict) else {"message": content}
+                    content=json.loads(json.dumps(await response.json(), indent=2))
+                )
+
+    def _make_request_sync(self, method: str, endpoint: str, json_data: Optional[Any] = None,
+                          data: Optional[Any] = None, headers: Optional[Dict] = None,
+                          params: Optional[Dict] = None) -> ApiResponse:
+        try:
+            # Reinitialize session if None
+            if self._session is None:
+                self._session = requests.Session()
+            response = self._session.request(
+                method=method,
+                url=f"{self._base_url}/{self._api_version}/{self._api_region}/{endpoint}",
+                params=params,
+                json=json_data,
+                data=data,
+                headers=headers,
+                timeout=10
+            )
+            content = response.json() if response.content else {}
+            return ApiResponse(
+                success=response.status_code >= 200 and response.status_code <= 299,
+                status_code=response.status_code,
+                message=response.reason or "No message provided",
+                content=json.dumps(content, indent=2, ensure_ascii=False)
+            )
+        except requests.RequestException as e:
+            return ApiResponse(message=str(e))
         
-    def __makerequest(self, method, endpoint, jsondata = None, data = None, headers = None, params = None,) -> ApiResponse:
-        """Make a request to the API.
-
-        Args:
-            method (_type_): The HTTP method to use for the request (e.g., GET, POST).
-            endpoint (_type_): The API endpoint to call.
-            jsondata (_type_, optional): The JSON data to send in the request body. Defaults to None.
-            data (_type_, optional): The form data to send in the request body. Defaults to None.
-            headers (_type_, optional): The headers to include in the request. Defaults to None.
-            params (_type_, optional): The query parameters to include in the request URL. Defaults to None.
-
-        Returns:
-            ApiResponse: An ApiResponse object containing the success status, status code, message, and content of the response.
-        """
-        response = requests.request(method=method, 
-                                    url=f"{self.__baseurl}/{self.__apiversion}/{self.__apiregion}/{endpoint}", 
-                                    params=params,
-                                    json=jsondata, 
-                                    data=data,
-                                    headers=headers,
-                                    timeout=10)
-        return ApiResponse(success= True if 199 < response.status_code < 299 else False, 
-                          statuscode=response.status_code, 
-                          message=response.reason if response.reason else "No message provided",
-                          content=json.dumps(response.json(), indent=2))
-    
-    def GetWorldMarketWaitList(self) -> ApiResponse:
+    async def close(self):
+        """Close the synchronous requests session."""
+        if self._session is not None:
+            self._session.close()
+            self._session = None
+        
+    async def get_world_market_wait_list(self) -> ApiResponse:
         """Returns a parsed variant of the current items waiting to be listed on the central market.  
 
         Returns:
             ApiResponse: An ApiResponse object containing the success status, status code, message, and content of the response.
         """
-        return self.__makerequest("GET", "GetWorldMarketWaitList")
-    
-    def PostGetWorldMarketWaitList(self) -> ApiResponse:
+        return await self._make_request_async("GET", "GetWorldMarketWaitList")
+
+    async def post_world_market_wait_list(self) -> ApiResponse:
         """Returns a parsed variant of the current items waiting to be listed on the central market.  
 
         Returns:
             ApiResponse: An ApiResponse object containing the success status, status code, message, and content of the response.
         """
-        return self.__makerequest("POST", "GetWorldMarketWaitList") 
-    
-    def GetWorldMarketHotList(self) -> ApiResponse:
+        return await self._make_request_async("POST", "GetWorldMarketWaitList")
+
+    async def get_world_market_hot_list(self) -> ApiResponse:
         """Get current market hotlist.
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently on market hotlist.
         """
-        return self.__makerequest("GET", "GetWorldMarketHotList")
-    
-    def PostGetWorldMarketHotList(self) -> ApiResponse:
+        return await self._make_request_async("GET", "GetWorldMarketHotList")
+
+    async def post_world_market_hot_list(self) -> ApiResponse:
         """Get current market hotlist
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently on market hotlist.
         """
-        return self.__makerequest("POST", "GetWorldMarketHotList")
-    
-    def GetMarketPriceInfo(self, id:list[str], sid:list[str]) -> ApiResponse:
+        return await self._make_request_async("POST", "GetWorldMarketHotList")
+
+    async def get_market_price_info(self, ids: List[str], sids: List[str], convertdate: bool = True, formatprice: bool = False) -> ApiResponse:
         """Get price history for an item or list of items. If multiple ids are given, returns a JsonArray of JsonObject of the items' price history. If only one id is given, returns a JsonObject of the item's price history.
 
         Args:
-            id (list[str]): itemid(s)
-            sid (list[str]): subid(s) like enhancement level
+            id (List[str]): itemid(s)
+            sid (List[str]): subid(s) like enhancement level
+            convertdate (bool): Convert unix-like timestamp to UTC datetime. Defaults to True.
+            formatprice (bool): Format price, adding separator (,). Defaults to False.
 
         Returns:
             ApiResponse: standardized response. Returned values in content.history: key (eg. "1745193600000"): Unix timestamps in milliseconds (from utils use ConvertTimestamp), value (eg. 75000000000): item silver value
         """
-        query_params = {
-            "id": id,
-            "sid": sid,
-            "lang": self.__apilang
-        }
-        return self.__makerequest("GET", "GetMarketPriceInfo", params=query_params)
-    
-    def PostGetMarketPriceInfo(self, id:list[str], sid:list[str]) -> ApiResponse:
+        params = {"id": ids, "sid": sids, "lang": self._api_lang}
+        result = await self._make_request_async("GET", "GetMarketPriceInfo", params=params)
+        if convertdate or formatprice:
+            # Handle both list and dict cases
+            content_list = [result.content] if isinstance(result.content, dict) else result.content
+            for item in content_list:
+                if "history" in item:
+                    new_history = {}
+                    for k, v in item["history"].items(): # type: ignore
+                        # Convert date if needed
+                        new_key = timestamp_to_datetime(float(k) / 1000).strftime("%Y-%m-%d") if convertdate else k
+                        # Format price if needed
+                        new_value = f"{v:,}" if formatprice else v
+                        new_history[new_key] = new_value
+                    item["history"] = new_history # type: ignore
+            result.content = content_list # type: ignore
+        return result
+
+    async def post_market_price_info(self, ids: List[str], sids: List[str], convertdate: bool = True, formatprice: bool = False) -> ApiResponse:
         """Get price history for an item or list of items. If multiple ids are given, returns a JsonArray of JsonObject of the items' price history. If only one id is given, returns a JsonObject of the item's price history.
 
         Args:
-            id (list[str]): itemid(s)
-            sid (list[str]): subid(s) like enhancement level
+            id (List[str]): itemid(s)
+            sid (List[str]): subid(s) like enhancement level
+            convertdate (bool): Convert unix-like timestamp to UTC datetime. Defaults to True.
+            formatprice (bool): Format price, adding separator (,). Defaults to False.
 
         Returns:
             ApiResponse: standardized response. Returned values in content.history: key (eg. "1745193600000"): Unix timestamps in milliseconds (from utils use ConvertTimestamp), value (eg. 75000000000): item silver value
         """
-        # ! Not working: can get valid response, but it makes no sense.
-        return self.__makerequest("POST", "GetMarketPriceInfo", params={"lang": self.__apilang}, jsondata=[{"id": id, "sid": sid}])
-    
-    def GetWorldMarketSearchList(self, ids:list[str]) -> ApiResponse:
+        result = await self._make_request_async("POST", "GetMarketPriceInfo", params={"lang": self._api_lang},
+                                            json_data = [{"id": int(id_), "sid": int(sid)} for id_, sid in zip(ids, sids)])
+        if convertdate or formatprice:
+            # Handle both list and dict cases
+            content_list = [result.content] if isinstance(result.content, dict) else result.content
+            for item in content_list:
+                if "history" in item:
+                    new_history = {}
+                    for k, v in item["history"].items(): # type: ignore
+                        # Convert date if needed
+                        new_key = timestamp_to_datetime(float(k) / 1000).strftime("%Y-%m-%d") if convertdate else k
+                        # Format price if needed
+                        new_value = f"{v:,}" if formatprice else v
+                        new_history[new_key] = new_value
+                    item["history"] = new_history # type: ignore
+            result.content = content_list # type: ignore
+        return result
+
+    async def get_world_market_search_list(self, ids: List[str]) -> ApiResponse:
         """Search for items by their id(s).
 
         Args:
@@ -227,23 +219,20 @@ class Market:
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items matching the search criteria.
         """
-        return self.__makerequest("GET", "GetWorldMarketSearchList", params={
-            "ids": ids,
-            "lang": self.__apilang
-        })
-    
-    def PostGetWorldMarketSearchList(self, ids:list[str]) -> ApiResponse:
+        return await self._make_request_async("GET", "GetWorldMarketSearchList", params={"ids": ids, "lang": self._api_lang})
+
+    async def post_world_market_search_list(self, ids: List[str]) -> ApiResponse:
         """Search for items by their id(s).
 
         Args:
-            ids (list[str]): itemid(s).
+            ids (str): itemid(s).
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items matching the search criteria.
         """
-        return self.__makerequest("POST", "GetWorldMarketSearchList", jsondata=ids, params={"lang": self.__apilang})
-    
-    def GetWorldMarketList(self, maincategory:str, subcategory:str) -> ApiResponse:
+        return await self._make_request_async("POST", "GetWorldMarketSearchList", json_data=ids, params={"lang": self._api_lang})
+
+    async def get_world_market_list(self, main_category: str, sub_category: str) -> ApiResponse:
         """Get items from a specific category or subcategory.
 
         Args:
@@ -253,13 +242,10 @@ class Market:
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items in the specified category or subcategory.
         """
-        return self.__makerequest("GET", "GetWorldMarketList", params={
-            "mainCategory": maincategory,
-            "subCategory": subcategory,
-            "lang": self.__apilang
-        })
-    
-    def PostGetWorldMarketList(self, maincategory:str, subcategory:str) -> ApiResponse:
+        params = {"mainCategory": main_category, "subCategory": sub_category, "lang": self._api_lang}
+        return await self._make_request_async("GET", "GetWorldMarketList", params=params)
+
+    async def post_world_market_list(self, main_category: str, sub_category: str) -> ApiResponse:
         """Get items from a specific category or subcategory.
 
         Args:
@@ -269,9 +255,10 @@ class Market:
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items in the specified category or subcategory.
         """
-        return self.__makerequest("POST", "GetWorldMarketList", jsondata={"mainCategory":maincategory, "subCategory": subcategory}, params={"lang":self.__apilang})
-    
-    def GetWorldMarketSubList(self, id:list[str]) -> ApiResponse:
+        json_data = {"mainCategory": main_category, "subCategory": sub_category}
+        return await self._make_request_async("POST", "GetWorldMarketList", json_data=json_data, params={"lang": self._api_lang})
+
+    async def get_world_market_sub_list(self, ids: List[str]) -> ApiResponse:
         """Get parsed item or items from min to max enhance (if available).
 
         Args:
@@ -280,20 +267,20 @@ class Market:
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their subid(s) (enhancement level).
         """
-        return self.__makerequest("GET", "GetWorldMarketSubList", params={"id":id, "lang":self.__apilang})
-    
-    def PostGetWorldMarketSubList(self, id:list[str]) -> ApiResponse:
+        return await self._make_request_async("GET", "GetWorldMarketSubList", params={"id": ids, "lang": self._api_lang})
+
+    async def post_world_market_sub_list(self, ids: List[str]) -> ApiResponse:
         """Get parsed item or items from min to max enhance (if available).
 
         Args:
-            id (str): itemid(s)
+            id (list[str]): itemid(s)
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their subid(s) (enhancement level).
         """
-        return self.__makerequest("POST", "GetWorldMarketSubList", jsondata=id, params={"lang":self.__apilang})
-    
-    def GetBiddingInfo(self, id:list[str], sid:list[str]) -> ApiResponse:
+        return await self._make_request_async("POST", "GetWorldMarketSubList", json_data=ids, params={"lang": self._api_lang})
+
+    async def get_bidding_info(self, ids: List[str], sids: List[str]) -> ApiResponse:
         """Get orders of an item or list of items
 
         Args:
@@ -303,9 +290,10 @@ class Market:
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items' bidding information.
         """
-        return self.__makerequest("GET", "GetBiddingInfoList", params={"id": id, "sid":sid, "lang":self.__apilang})
-    
-    def PostGetBiddingInfo(self, id:list[str], sid:list[str]) -> ApiResponse:
+        params = {"id": ids, "sid": sids, "lang": self._api_lang}
+        return await self._make_request_async("GET", "GetBiddingInfoList", params=params)
+
+    async def post_bidding_info(self, ids: List[str], sids: List[str]) -> ApiResponse:
         """Get orders of an item or list of items
 
         Args:
@@ -315,44 +303,46 @@ class Market:
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items' bidding information.
         """
-        # ! Not working: An unexpected error occurred
-        return self.__makerequest("POST", "GetBiddingInfoList", jsondata=[{"id":id, "sid":sid}], params={"lang":self.__apilang})
-    
-    def GetPearlItems(self) -> ApiResponse:
+        return await self._make_request_async("POST", "GetBiddingInfoList", json_data = [{"id": int(id_), "sid": int(sid)} for id_, sid in zip(ids, sids)],
+                                            params={"lang": self._api_lang})
+
+    async def get_pearl_items(self) -> ApiResponse:
         """Convenience method for getting all pearl items.
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of pearl items.
         """
-        return self.__makerequest("GET", "pearlItems", params={"lang":self.__apilang})
-    
-    def PostGetPearlItems(self) -> ApiResponse:
+        return await self._make_request_async("GET", "pearlItems", params={"lang": self._api_lang})
+
+    async def post_pearl_items(self) -> ApiResponse:
         """Convenience method for getting all pearl items.
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of pearl items.
         """
-        return self.__makerequest("POST", "pearlItems", params={"lang":self.__apilang})
-    
-    def GetMarket(self) -> ApiResponse:
-        """Convenience method for getting all items currently available on the market.
+        return await self._make_request_async("POST", "pearlItems", params={"lang": self._api_lang})
+
+    # ! Not working
+    async def get_market(self) -> ApiResponse:
+        """NOT WORKING! Convenience method for getting all items currently available on the market.
+        
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently available on the market.
         """
-        # ! Not working: One or more requests returned invalid data (probably blocked by Imperva). Try again later.
-        return self.__makerequest("GET", "market", params={"lang":self.__apilang})
-    
-    def PostGetMarket(self) -> ApiResponse:
-        """Convenience method for getting all items currently available on the market.
+        return await self._make_request_async("GET", "market", params={"lang": self._api_lang})
+
+    # ! Not working
+    async def post_market(self) -> ApiResponse:
+        """NOT WORKING! Convenience method for getting all items currently available on the market.
+        
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently available on the market.
         """
-        # ! Not working: One or more requests returned invalid data (probably blocked by Imperva). Try again later.
-        return self.__makerequest("POST", "market", params={"lang":self.__apilang})
-    
-    def GetItem(self, ids:list[str] = []) -> ApiResponse:
+        return await self._make_request_async("POST", "market", params={"lang": self._api_lang})
+
+    async def get_item(self, ids: List[str] = []) -> ApiResponse:
         """Get item information by its id(s).
 
         Args:
@@ -364,18 +354,29 @@ class Market:
         """
         if not ids:
             return ApiResponse()
-        response = requests.request(method="GET", 
-                                    url=f"{self.__baseurl}/util/db", 
-                                    params={"id":ids, "lang":self.__apilang},
-                                    timeout=10)
-        
-        return ApiResponse(success= True if 199 < response.status_code < 299 else False, 
-                          statuscode=response.status_code, 
-                          message=response.reason if response.reason else "No message provided",
-                          content=json.dumps(json.loads(response.content), indent=2, ensure_ascii=False))
-    
-        
-    def ItemDatabaseDump(self, startid: int, endid: int, chunksize: int = 100) -> ApiResponse:
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"{self._base_url}/util/db",
+                    params={"id": ids, "lang": self._api_lang},
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    # try:
+                    #     content = await response.json()
+                    #     content_str = json.dumps(content, indent=2, ensure_ascii=False)
+                    # except aiohttp.ContentTypeError:
+                    #     content_str = await response.text()
+                    return ApiResponse(
+                        success=response.status >= 200 and response.status <= 299,
+                        status_code=response.status,
+                        message=response.reason or "No message provided",
+                        # content=json.dumps(content, indent=2, ensure_ascii=False)
+                        content=json.loads(await response.text())
+                    )
+        except aiohttp.ClientError as e:
+            return ApiResponse(message=str(e))
+
+    async def item_database_dump(self, start_id: int, end_id: int, chunk_size: int = 100) -> ApiResponse:
         """Dump the item database from startid to endid in chunks of chunksize.
 
         Args:
@@ -386,27 +387,32 @@ class Market:
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their id, name, and sid.
         """
-        chunksize = min(chunksize, 100)  # API limit
-
+        chunk_size = min(chunk_size, 100)  # API limit
         items = []
-        for i in range(startid, endid + 1, chunksize):
-            ids = [str(j) for j in range(i, min(i + chunksize, endid + 1))]
-            response = self.GetItem(ids)
+        tasks = []
 
-            if response.success:
-                deserialized = response.Deserialize() or []
-                items.extend(item for item in deserialized if item is not None)
+        for i in range(start_id, end_id + 1, chunk_size):
+            ids = [str(j) for j in range(i, min(i + chunk_size, end_id + 1))]
+            tasks.append(self.get_item(ids))
+
+        responses = await asyncio.gather(*tasks, return_exceptions=True)
+        for response in responses:
+            if isinstance(response, ApiResponse) and response.success:
+                # items.extend(response.deserialize() or [])
+                items.extend(response.content or [])
             else:
-                print(f"Error fetching items {ids}: {response.message}")
+                print(f"Error fetching items: {response.message if isinstance(response, ApiResponse) else str(response)}")
 
         return ApiResponse(
-            content=json.dumps(items, indent=2, ensure_ascii=False),
+            # content=json.dumps(items, indent=2, ensure_ascii=False),
+            content=json.loads(json.dumps(items, indent=2)),
             success=True,
-            statuscode=200,
+            status_code=200,
             message="Item database dump completed successfully."
         )
-        
-    def GetPigCaveStatus(self, region: PigCave = PigCave.EU) -> ApiResponse:
+
+    # TODO: move this to utils (this is not market related...)
+    async def get_pig_cave_status(self, region: PigCave = PigCave.EU) -> ApiResponse:
         """Get Pig Cave status by region (garmoth.com data)
 
         Args:
@@ -415,10 +421,26 @@ class Market:
         Returns:
             ApiResponse: An ApiResponse object containing the success status, status code, message, and content of the response.
         """
-        response = requests.request("GET", f"http://node63.lunes.host:3132/{region.value}")
-        return ApiResponse(
-            success=True if 199 < response.status_code < 299 else False,
-            statuscode=response.status_code,
-            message=response.reason if response.reason else "No message provided",
-            content=response.text
-        )
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"http://node63.lunes.host:3132/{region.value}") as response:
+                content = await response.text()
+                return ApiResponse(
+                    success=response.status >= 200 and response.status <= 299,
+                    status_code=response.status,
+                    message=response.reason or "No message provided",
+                    content=content
+                )
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._session is not None:
+            self._session.close()
+            self._session = None
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()

@@ -138,107 +138,135 @@ Python installed on your system.
 <!-- USAGE EXAMPLES -->
 ## Usage
 ```python
-import bdomarket
+import asyncio
+import bdomarket as bm
 
-# -------------------------------
-# 1. Initialize Market Interface
-# -------------------------------
-# Set up the market object for the EU region, API version 2, and English language.
-market = bdomarket.Market(
-    bdomarket.MarketRegion.EU,
-    bdomarket.ApiVersion.V2,
-    bdomarket.Locale.English
-)
+async def main():
+    # Initialize Market with EU region, V2 API, English locale
+    async with bm.Market(region=bm.MarketRegion.EU, api_version=bm.ApiVersion.V2, language=bm.Locale.English) as market:
+        
+        # Get world market wait list
+        wait_list = await market.get_world_market_wait_list()
+        # print("World Market Wait List:", wait_list)
+        wait_list.save_to_file("responses/waitlist/get.json")
 
-# -------------------------------
-# 2. Boss Timer Functionality
-# -------------------------------
-# Fetch and display world boss spawn times for the EU server.
-boss_timer = bdomarket.timers.Boss(bdomarket.timers.Server.EU).Scrape()
-print("Boss Timer (Python object):")
-print(boss_timer.GetTimer())
-print("\nBoss Timer (JSON):")
-print(boss_timer.GetTimerJSON())
+        # Post world market wait list
+        post_wait_list = await market.post_world_market_wait_list()
+        # print("Post World Market Wait List:", post_wait_list)
+        post_wait_list.save_to_file("responses/waitlist/post.json")
 
-# -------------------------------
-# 3. Market Wait List
-# -------------------------------
-# Retrieve the current market waitlist and save it to a file.
-waitlist_response = market.GetWorldMarketWaitList()
-print("\nMarket Wait List (content):")
-print(waitlist_response.content)
-waitlist_response.SaveToFile("responses/waitlist/get.json")
+        # Get world market hot list
+        hot_list = await market.get_world_market_hot_list()
+        # print("World Market Hot List:", hot_list)
+        hot_list.save_to_file("responses/hotlist/get.json")
 
-# Deserialize waitlist to Python objects and print each item.
-print("\nDeserialized Wait List Items:")
-for item in waitlist_response.Deserialize():
-    print(item)
+        # Post world market hot list
+        post_hot_list = await market.post_world_market_hot_list()
+        # print("Post World Market Hot List:", post_hot_list)
+        post_hot_list.save_to_file("responses/hotlist/post.json")
 
-# -------------------------------
-# 4. Item Queries
-# -------------------------------
-# Fetch information for multiple items by their IDs and save to file.
-item_ids = ["3", "9505", "14870"]
-items_response = market.GetItem(item_ids)
-items_response.SaveToFile("responses/items/get.json")
-print("\nFetched Items:")
-print(items_response.content)
+        # Get market price info for items
+        price_info = await market.get_market_price_info(ids=["735008", "735009"], sids=["20", "20"], convertdate=True, formatprice=False)
+        # print("Market Price Info:", price_info)
+        price_info.save_to_file("responses/priceinfo/get.json")
 
-# Dump a range of items (IDs 0 to 250) to a file.
-market.ItemDatabaseDump(0, 250).SaveToFile("responses/itemdump/dump.json")
+        # Post market price info
+        post_price_info = await market.post_market_price_info(ids=["735008", "735009"], sids=["20", "20"], convertdate=True, formatprice=False)
+        # print("Post Market Price Info:", post_price_info)
+        post_price_info.save_to_file("responses/priceinfo/post.json")
 
-# -------------------------------
-# 5. Market Lists and SubLists
-# -------------------------------
-# Get and save various market lists.
-market.GetWorldMarketList("1", "1").SaveToFile("responses/list/get.json")
-market.GetWorldMarketSubList(["735008", "731109"]).SaveToFile("responses/sublist/get.json")
-market.GetWorldMarketSearchList(["735008", "731109"]).SaveToFile("responses/searchlist/get.json")
+        # Get world market search list
+        search_list = await market.get_world_market_search_list(ids=["735008"])
+        # print("World Market Search List:", search_list)
+        search_list.save_to_file("responses/searchlist/get.json")
 
-# -------------------------------
-# 6. Bidding and Price Info
-# -------------------------------
-# Fetch and save bidding and price information for specific items.
-# NOTE: Timestamp Conversion Utility is used to convert Unix timestamps to human-readable format.
-market.GetBiddingInfo(["735008", "731109"], ["19", "20"]).SaveToFile("responses/bidding/get.json")
-market.GetMarketPriceInfo(["735008", "731109"], ["19", "20"]).SaveToFile("responses/priceinfo/get.json")
+        # Post world market search list
+        post_search_list = await market.post_world_market_search_list(ids=["735008"])
+        # print("Post World Market Search List:", post_search_list)
+        post_search_list.save_to_file("responses/searchlist/post.json")
 
-# -------------------------------
-# 7. Pearl Items and Market Info
-# -------------------------------
-# Retrieve and save pearl shop items and overall market info.
-market.GetPearlItems().SaveToFile("responses/pearlitems/get.json")
-market.GetMarket().SaveToFile("responses/market/get.json")
+        # Get world market list by category
+        market_list = await market.get_world_market_list(main_category="1", sub_category="1")
+        # print("World Market List:", market_list)
+        market_list.save_to_file("responses/marketlist/get.json")
 
-# -------------------------------
-# 8. Timestamp Conversion Utility
-# -------------------------------
-# Convert a Unix timestamp (in ms) to a human-readable format.
-timestamp = 1745193600000
-print("\nConverted Timestamp:")
-utcdate = bdomarket.TimestampToDatetime(timestamp)
-print(utcdate)
-print(bdomarket.DatetimeToTimestamp(utcdate))
+        # Post world market list
+        post_market_list = await market.post_world_market_list(main_category="1", sub_category="1")
+        # print("Post World Market List:", post_market_list)
+        post_market_list.save_to_file("responses/marketlist/post.json")
 
-# -------------------------------
-# 9. Item Object Usage
-# -------------------------------
-# Create an Item object, print its details, and download its icon.
-item = bdomarket.item.Item()
-print("\nItem Object:")
-print(item)
-print("Item as dict:", item.to_dict())
+        # Get world market sub list
+        sub_list = await market.get_world_market_sub_list(ids=["735008"])
+        # print("World Market Sub List:", sub_list)
+        sub_list.save_to_file("responses/sublist/get.json")
 
-# -------------------------------
-# 10. Pig Cave Status
-# -------------------------------
-# Convert a Unix timestamp (in ms) to a human-readable format.
-pigcavestatus = market.GetPigCaveStatus(bdomarket.PigCave.EU)
-print(pigcavestatus)
+        # Post world market sub list
+        post_sub_list = await market.post_world_market_sub_list(ids=["735008"])
+        # print("Post World Market Sub List:", post_sub_list)
+        post_sub_list.save_to_file("responses/sublist/post.json")
 
-# Download the item's icon by ID (absolute path) and by name (relative path).
-item.GetIcon(r"D:\bdomarket\icons", False, bdomarket.item.ItemProp.ID)
-item.GetIcon("icons", True, bdomarket.item.ItemProp.NAME)
+
+        # Get bidding info
+        bidding_info = await market.get_bidding_info(ids=["735008", "735009"], sids=["20", "20"])
+        # print("Bidding Info:", bidding_info)
+        bidding_info.save_to_file("responses/biddinginfo/get.json")
+
+        # Post bidding info
+        post_bidding_info = await market.post_bidding_info(ids=["735008", "735009"], sids=["20", "20"])
+        # print("Post Bidding Info:", post_bidding_info)
+        post_bidding_info.save_to_file("responses/biddinginfo/post.json")
+
+        # Get pearl items
+        pearl_items = await market.get_pearl_items()
+        # print("Pearl Items:", pearl_items)
+        pearl_items.save_to_file("responses/pearlitems/get.json")
+
+        # Post pearl items
+        post_pearl_items = await market.post_pearl_items()
+        # print("Post Pearl Items:", post_pearl_items)
+        post_pearl_items.save_to_file("responses/pearlitems/post.json")
+
+        # Get market
+        # ! BROKEN
+        market_data = await market.get_market()
+        # print("Market Data:", market_data)
+        market_data.save_to_file("responses/marketdata/get.json")
+
+        # Post market
+        # ! BROKEN
+        post_market_data = await market.post_market()
+        # print("Post Market Data:", post_market_data)
+        post_market_data.save_to_file("responses/marketdata/post.json")
+
+        # Get item by ID
+        item = await market.get_item(ids=["735008"])
+        # print("Item Info:", item)
+        item.save_to_file("responses/item/get.json")
+
+        # Get item database dump
+        item_dump = await market.item_database_dump(start_id=1, end_id=10, chunk_size=5)
+        # print("Item Database Dump:", item_dump)
+        item_dump.save_to_file("responses/itemdump/get.json")
+
+        # Get Pig Cave status
+        pig_cave = await market.get_pig_cave_status(region=bm.PigCave.EU)
+        # print("Pig Cave Status:", pig_cave)
+        pig_cave.save_to_file("responses/pig/get.json")
+        
+    # Get world boss timer
+    bosstimer = bm.Boss().Scrape()
+    bosstimer.GetTimer()
+    bosstimer.GetTimerJSON()
+    
+    item = bm.Item(id="735008")
+    # item.GetIcon(r"C:\yourpath", False, ItemProp.ID)
+    item.GetIcon("responses/icons", True, bm.ItemProp.NAME)
+    item.GetIcon("responses/icons", True, bm.ItemProp.ID)
+
+if __name__ == "__main__":
+    print("Loading...")
+    asyncio.run(main())
+    print("Done!")
 
 ```
 
@@ -290,9 +318,8 @@ item.GetIcon("icons", True, bdomarket.item.ItemProp.NAME)
 - [ ] Search & Filtering  
     - [ ] Search items by name or partial match  
     - [ ] Filter market data by category, price, etc.  
-- [ ] Performance Improvements  
-    - [ ] Caching of frequent API responses  
-    - [ ] Async support for faster data retrieval  
+- [x] Performance Improvements  
+    - [x] Async support for faster data retrieval  
 - [ ] CLI Tool  
     - [ ] Command-line interface for quick queries and downloads  
 - [ ] Webhook/Notification Support  
