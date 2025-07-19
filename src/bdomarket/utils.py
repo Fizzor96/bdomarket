@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timezone
 import os
 from .identifiers import Server, ItemProp, PigCave
-from .bdomarket import ApiResponse
+from .response import ApiResponse
 import aiohttp
 from typing import Optional
 

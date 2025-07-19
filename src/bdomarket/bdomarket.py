@@ -1,48 +1,12 @@
 import requests
 import json
-import os
 import aiohttp
 import asyncio
 from typing import List, Optional, Dict, Any
 from .identifiers import ApiVersion, Locale, MarketRegion
 from .utils import timestamp_to_datetime
-
-class ApiResponse:
-    def __init__(self, success: bool = False, status_code: int = -1, message: str = "", content: str = ""):
-        self.success = success
-        self.status_code = status_code
-        self.message = message
-        self.content = content
-
-    def __str__(self) -> str:
-        """String representation of the ApiResponse object.
-
-        Returns:
-            str: A string containing the success status, status code, message, and content of the response.
-        """
-        return f"success: {self.success}\nstatus_code: {self.status_code}\nmessage: {self.message}\ncontent: {json.dumps(self.content, indent=2, ensure_ascii=False)}"
-
-    # def deserialize(self) -> Dict[str, Any]:
-    #     try:
-    #         return json.loads(self.content) if self.content else {}
-    #     except json.JSONDecodeError:
-    #         raise ValueError("Failed to deserialize content")
-
-    def save_to_file(self, path: str, mode: str = "w") -> None:
-        """Save the ApiResponse content to a file in JSON format.
-
-        Args:
-            path (str): The file path where the content should be saved.
-        """
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        data = {
-            "success": self.success,
-            "status_code": self.status_code,
-            "message": self.message,
-            "content": self.content
-        }
-        with open(path, mode, encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+from .response import ApiResponse
+from tqdm import tqdm
 
 class Market:
     def __init__(self, region: MarketRegion = MarketRegion.EU, api_version: ApiVersion = ApiVersion.V2, language: Locale = Locale.English):
@@ -636,20 +600,18 @@ class Market:
         items = []
         tasks = []
 
-        for i in range(start_id, end_id + 1, chunk_size):
+        for i in tqdm(range(start_id, end_id + 1, chunk_size), desc="Processing chunks"):
             ids = [str(j) for j in range(i, min(i + chunk_size, end_id + 1))]
             tasks.append(self.get_item(ids))
 
         responses = await asyncio.gather(*tasks, return_exceptions=True)
         for response in responses:
             if isinstance(response, ApiResponse) and response.success:
-                # items.extend(response.deserialize() or [])
                 items.extend(response.content or [])
             else:
                 print(f"Error fetching items: {response.message if isinstance(response, ApiResponse) else str(response)}")
 
         return ApiResponse(
-            # content=json.dumps(items, indent=2, ensure_ascii=False),
             content=json.loads(json.dumps(items, indent=2)),
             success=True,
             status_code=200,
