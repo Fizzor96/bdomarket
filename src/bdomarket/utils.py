@@ -3,12 +3,16 @@ from bs4 import BeautifulSoup
 import json
 from datetime import datetime, timezone
 import os
-from .identifiers import Server, ItemProp
+from .identifiers import Server, ItemProp, PigCave
+from .bdomarket import ApiResponse
+import aiohttp
+from typing import Optional
 
 __all__ = [
     "timestamp_to_datetime",
     "datetime_to_timestamp",
     "Boss",
+    "Pig",
     "Item"
 ]
 
@@ -17,6 +21,43 @@ def timestamp_to_datetime(timestamp: float) -> datetime:
 
 def datetime_to_timestamp(dt: datetime) -> float:
     return dt.timestamp()
+
+class Pig:
+    def __init__(self, region: PigCave = PigCave.EU):
+        """Initialize Pig with a region.
+
+        Args:
+            region (PigCave, optional): Region for Pig Cave API. Defaults to PigCave.EU.
+        """
+        self._region = region
+        self._status: Optional[str] = None
+
+    async def get_status(self) -> ApiResponse:
+        """Fetch Pig Cave status (garmoth data).
+
+        Returns:
+            ApiResponse: Contains success status, status code, message, and response content.
+        
+        Raises:
+            aiohttp.ClientError: If the HTTP request fails.
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"http://node63.lunes.host:3132/{self._region.value}") as response:
+                    content = await response.text()
+                    self._status = content
+                    return ApiResponse(
+                        success=200 <= response.status <= 299,
+                        status_code=response.status,
+                        message=self._region.value,
+                        content=content
+                    )
+        except aiohttp.ClientError as e:
+            return ApiResponse(
+                success=False,
+                status_code=0,
+                message=f"Request failed: {str(e)}",
+            )
 
 class Boss():
     def __init__(self, server: Server = Server.EU):
@@ -31,6 +72,7 @@ class Boss():
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Connection": "keep-alive",
         }).content
+        
         soup = BeautifulSoup(self.__content, 'html.parser')
         
         table = soup.find('table', class_='main-table')
@@ -77,7 +119,7 @@ class Boss():
         return json.dumps(self.__data, indent=indent)
     
 class Item:
-    def __init__(self, id: str = "735008", name: str = "Blackstar Shuriken", sid: str = "0"):
+    def __init__(self, id: str = "735008", name: str = ""):
         """Initialize an Item object.
 
         Args:
@@ -86,9 +128,8 @@ class Item:
             sid (str, optional): The sidentifier for the item can be the enchancement level. Defaults to "0".
         """
         self.id = id
-        self.sid = sid
-        self.name = name
-        # TODO: grade
+        self.name = name # TODO: implement query by name
+        self.sid = 0
         self.grade = 0
 
     def __repr__(self):
@@ -116,7 +157,8 @@ class Item:
         return {
             "item_id": self.id,
             "name": self.name,
-            "sid": self.sid
+            "sid": self.sid,
+            "grade": self.grade
         }
         
     def GetIcon(self, folderpath: str = "icons", isrelative: bool = True, filenameprop:ItemProp = ItemProp.ID):
