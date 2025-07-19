@@ -6,14 +6,14 @@ async def async_example():
     pigregion = bdomarket.PigCave.EU
     pigcave = bdomarket.Pig(pigregion)
     pigstatus = await pigcave.get_status()
-    print(f"Pig Cave status ({pigregion.value}): {pigstatus}")
+    print(f"Pig Cave status: {pigregion.value}: {pigstatus.content}")
     pigstatus.save_to_file("responses/async/pigcave/status.json")
     
     # Initialize Market with EU region, V2 API, English locale
     async with bdomarket.Market(region=bdomarket.MarketRegion.EU, api_version=bdomarket.ApiVersion.V2, language=bdomarket.Locale.English) as market:
         # Get world market wait list (async)
         wait_list = await market.get_world_market_wait_list()
-        print("World Market Wait List:", wait_list.success, wait_list.status_code)
+        # print("World Market Wait List:", wait_list.success, wait_list.status_code)
         wait_list.save_to_file("responses/async/waitlist/get.json")
 
         # Post world market wait list (async)
@@ -106,10 +106,18 @@ async def async_example():
         print("Item Info:", item.success, item.status_code)
         item.save_to_file("responses/async/item/get.json")
 
-        # Get item database dump (async)
-        item_dump = await market.item_database_dump(start_id=1, end_id=10, chunk_size=5)
+        # EXPERIMENTAL! Get item database dump (async) - avoid using this
+        item_dump = await market.item_database_dump(start_id=1, end_id=10, chunk_size=5, showstatus=False)
         print("Item Database Dump:", item_dump.success, item_dump.status_code)
-        item_dump.save_to_file("responses/async/itemdump/get.json")
+        item_dump.save_to_file("responses/async/itemdump/partial.json")
+        
+        # Get item database dump full (async)
+        item_dump_full = await market.item_database_dump_v2()
+        item_dump_full.save_to_file("responses/async/itemdump/get.json")
+        print("Item Database Dump Full:", item_dump_full.success, item_dump_full.status_code)
+        print(len(item_dump_full.content))
+        print(bdomarket.get_items_by_name_from_db(item_dump_full.content, "Blackstar Shuriken"))
+        print(bdomarket.get_items_by_id_from_db(item_dump_full.content, 735008))
 
 def sync_example():
     # Get boss timer

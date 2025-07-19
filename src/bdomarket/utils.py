@@ -7,12 +7,25 @@ from .identifiers import Server, ItemProp, PigCave
 from .response import ApiResponse
 import aiohttp
 from typing import Optional
+from collections import defaultdict
 
 def timestamp_to_datetime(timestamp: float) -> datetime:
     return datetime.fromtimestamp(timestamp, tz=timezone.utc)
 
 def datetime_to_timestamp(dt: datetime) -> float:
     return dt.timestamp()
+
+def get_items_by_name_from_db(db, name: str = ""):
+    name_index = defaultdict(list)
+    for item in db:
+        name_index[item["name"]].append(item)
+    return name_index.get(name, [])
+
+def get_items_by_id_from_db(db, id: int = 0):
+    id_index = defaultdict(list)
+    for item in db:
+        id_index[item["id"]].append(item)
+    return id_index.get(id, [])
 
 class Pig:
     def __init__(self, region: PigCave = PigCave.EU):

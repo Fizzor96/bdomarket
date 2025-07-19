@@ -490,9 +490,8 @@ class Market:
         """
         return self._make_request_sync("POST", "pearlItems", params={"lang": self._api_lang})
 
-    # ! Not working
     async def get_market(self) -> ApiResponse:
-        """NOT WORKING! Convenience method for getting all items currently available on the market.
+        """Convenience method for getting all items currently available on the market.
         
 
         Returns:
@@ -500,19 +499,23 @@ class Market:
         """
         return await self._make_request_async("GET", "market", params={"lang": self._api_lang})
     
-    # ! Not working
     def get_market_sync(self) -> ApiResponse:
-        """NOT WORKING! Convenience method for getting all items currently available on the market.
+        """Convenience method for getting all items currently available on the market.
         
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently available on the market.
         """
-        return self._make_request_sync("GET", "market", params={"lang": self._api_lang})
+        result = self._make_request_sync("GET", "market", params={"lang": self._api_lang})
+        return ApiResponse(
+            success=result.success,
+            status_code=result.status_code,
+            message=result.message,
+            content=json.loads(result.content)
+        )
 
-    # ! Not working
     async def post_market(self) -> ApiResponse:
-        """NOT WORKING! Convenience method for getting all items currently available on the market.
+        """Convenience method for getting all items currently available on the market.
         
 
         Returns:
@@ -521,13 +524,19 @@ class Market:
         return await self._make_request_async("POST", "market", params={"lang": self._api_lang})
     
     def post_market_sync(self) -> ApiResponse:
-        """NOT WORKING! Convenience method for getting all items currently available on the market.
+        """Convenience method for getting all items currently available on the market.
         
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items currently available on the market.
         """
-        return self._make_request_sync("POST", "market", params={"lang": self._api_lang})
+        result = self._make_request_sync("POST", "market", params={"lang": self._api_lang})
+        return ApiResponse(
+            success=result.success,
+            status_code=result.status_code,
+            message=result.message,
+            content=json.loads(result.content)
+        )
 
     async def get_item(self, ids: List[str] = []) -> ApiResponse:
         """Get item information by its id(s).
@@ -584,8 +593,8 @@ class Market:
         except aiohttp.ClientError as e:
             return ApiResponse(message=str(e))
 
-    # NOTE: No point making sync for this function
-    async def item_database_dump(self, start_id: int, end_id: int, chunk_size: int = 100) -> ApiResponse:
+    # NOTE: EXPERIMENTAL! No point making sync for this function
+    async def item_database_dump(self, start_id: int, end_id: int, chunk_size: int = 100, showstatus: bool = False) -> ApiResponse:
         """Dump the item database from startid to endid in chunks of chunksize.
 
         Args:
@@ -600,9 +609,14 @@ class Market:
         items = []
         tasks = []
 
-        for i in tqdm(range(start_id, end_id + 1, chunk_size), desc="Processing chunks"):
-            ids = [str(j) for j in range(i, min(i + chunk_size, end_id + 1))]
-            tasks.append(self.get_item(ids))
+        if showstatus:
+            for i in tqdm(range(start_id, end_id + 1, chunk_size), desc="Processing chunks"):
+                ids = [str(j) for j in range(i, min(i + chunk_size, end_id + 1))]
+                tasks.append(self.get_item(ids))
+        else:
+            for i in range(start_id, end_id + 1, chunk_size):
+                ids = [str(j) for j in range(i, min(i + chunk_size, end_id + 1))]
+                tasks.append(self.get_item(ids))
 
         responses = await asyncio.gather(*tasks, return_exceptions=True)
         for response in responses:
@@ -636,26 +650,6 @@ class Market:
                         message=response.reason or "No message provided",
                         content=json.loads(await response.text())
                     )
-
-    # # NOTE: moved, have to test it!
-    # async def get_pig_cave_status(self, region: PigCave = PigCave.EU) -> ApiResponse:
-    #     """Get Pig Cave status by region (garmoth.com data)
-
-    #     Args:
-    #         region (PigCave, optional): Region and endpoint at the same time. Defaults to PigCave.EU.
-
-    #     Returns:
-    #         ApiResponse: An ApiResponse object containing the success status, status code, message, and content of the response.
-    #     """
-    #     async with aiohttp.ClientSession() as session:
-    #         async with session.get(f"http://node63.lunes.host:3132/{region.value}") as response:
-    #             content = await response.text()
-    #             return ApiResponse(
-    #                 success=response.status >= 200 and response.status <= 299,
-    #                 status_code=response.status,
-    #                 message=f"{region.value}" or "No message provided",
-    #                 content=content
-    #             )
 
     def __enter__(self):
         return self
