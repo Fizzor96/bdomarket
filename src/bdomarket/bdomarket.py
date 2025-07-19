@@ -110,7 +110,7 @@ class Market:
         except requests.RequestException as e:
             return ApiResponse(message=str(e))
         
-    async def close(self):
+    def close(self):
         """Close the synchronous requests session."""
         if self._session is not None:
             self._session.close()
@@ -688,4 +688,4 @@ class Market:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.close()
+        self.close()
