@@ -617,6 +617,25 @@ class Market:
             status_code=200,
             message="Item database dump completed successfully."
         )
+        
+    async def item_database_dump_v2(self) -> ApiResponse:
+        """Dump full item database
+
+        Returns:
+            ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their id, name, and sid.
+        """
+        async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"{self._base_url}/util/db",
+                    params={"lang": self._api_lang},
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    return ApiResponse(
+                        success=response.status >= 200 and response.status <= 299,
+                        status_code=response.status,
+                        message=response.reason or "No message provided",
+                        content=json.loads(await response.text())
+                    )
 
     # # NOTE: moved, have to test it!
     # async def get_pig_cave_status(self, region: PigCave = PigCave.EU) -> ApiResponse:
