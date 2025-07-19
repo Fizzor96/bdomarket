@@ -101,18 +101,22 @@ This code is a simple and well-structured API client for BDO market data, built 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+### Get involved
+
+[![discord][discord-shield]][discord-link]
+
 ### Donate
 
 If you like my project, you can buy me a coffee, many thanks ❤️ !
 
 <a href="https://www.buymeacoffee.com/fizzor"><img src="images/bmc-button.png" width="120" height="30"/></a>
 
+
 ### Built With
 
 [![Python][Python.com]][Python-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- GETTING STARTED -->
