@@ -18,8 +18,9 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
+<!-- [![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url] -->
+[![PyPI - Downloads](https://img.shields.io/pepy/dt/bdomarket?style=for-the-badge&logo=pypi&logoColor=white&label=Downloads&color=blue)](https://pepy.tech/project/bdomarket)
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![project_license][license-shield]][license-url]
