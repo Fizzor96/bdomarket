@@ -1,6 +1,6 @@
 [project]
 name = "bdomarket"
-version = "0.2.13"
+version = "0.2.14"
 description = "API client for BDO market"
 homepage = "https://github.com/Fizzor96/bdomarket"
 authors = [
@@ -28,3 +28,7 @@ Repository = "https://github.com/Fizzor96/bdomarket"
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.6.1"
+mkdocstrings = "^0.30.0"
+
