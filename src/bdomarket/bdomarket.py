@@ -23,6 +23,9 @@ class Market:
         self._api_region = region.value
         self._api_lang = language.value
         self._session = requests.Session()
+        print("Stay Updated!")
+        print("Join our Discord community for the latest updates, news, and exclusive information:")
+        print("https://discord.gg/hSWHfhSpDe")
 
     async def _make_request_async(self, method: str, endpoint: str, json_data: Optional[Any] = None,
                                   data: Optional[Any] = None, headers: Optional[Dict] = None,

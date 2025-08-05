@@ -31,6 +31,19 @@ def get_items_by_id_from_db(db, id: int = 0):
         id_index[item["id"]].append(item)
     return id_index.get(id, [])
 
+def search_items_by_name(file_path, search_string):
+    with open(file_path, "r", encoding="utf-8") as file:
+        data = json.load(file)
+    matches = [item for item in data['content']
+               if search_string.lower() in item['name'].lower()]
+    return matches
+
+def search_items_by_id(file_path, search_id):
+    with open(file_path, "r", encoding="utf-8") as file:
+        data = json.load(file)
+    matches = [item for item in data['content'] if item['id'] == search_id]
+    return matches
+
 
 class Pig:
     def __init__(self, region: PigCave = PigCave.EU):
