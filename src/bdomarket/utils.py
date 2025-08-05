@@ -53,7 +53,7 @@ class Pig:
         """
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(f"http://node70.lunes.host:3132/{self._region.value}") as response:
+                async with session.get(f"http://node70.lunes.host:3030/{self._region.value}") as response:
                     content = await response.text()
                     self._status = content
                     return ApiResponse(
