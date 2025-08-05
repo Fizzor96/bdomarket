@@ -37,8 +37,8 @@ jobs:
           restore-keys: |
             mkdocs-${{ runner.os }}-
 
-      - name: Install dependencies
-        run: pip install mkdocs-material "mkdocstrings[python]"
+      - name: Install project + docs dependencies
+        run: pip install .[docs] mkdocs-material
 
       - name: Deploy with MkDocs
         run: mkdocs gh-deploy --force
