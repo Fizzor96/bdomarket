@@ -8,6 +8,31 @@ from .response import ApiResponse
 import aiohttp
 from typing import Optional
 from collections import defaultdict
+from importlib.metadata import version, PackageNotFoundError
+
+def check_for_updates():
+    package = "bdomarket"
+    try:
+        installed_version = version(package)
+    except PackageNotFoundError:
+        installed_version = None
+    latest_version = None
+    try:
+        url = f"https://pypi.org/pypi/{package}/json"
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            latest_version = response.json()["info"]["version"]
+    except requests.RequestException as e:
+        print(f"Update check failed: {e}")
+        return
+
+    if latest_version and latest_version != installed_version:
+        print(f"🔔 Update available for {package}: {installed_version or 'Not installed'} → {latest_version}")
+    else:
+        print(f"✅ {package} is up to date ({installed_version})")
+    print("Stay Updated!")
+    print("Join our Discord community for the latest updates, news, and exclusive information:")
+    print("https://discord.gg/hSWHfhSpDe")
 
 
 def timestamp_to_datetime(timestamp: float) -> datetime:

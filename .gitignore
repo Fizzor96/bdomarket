@@ -211,5 +211,5 @@ deprecated/
 responses/
 icons/
 newfeatures/
-test.py
-testpig.py
+testlocal.py
+testpackage.py

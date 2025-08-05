@@ -4,9 +4,10 @@ import aiohttp
 import asyncio
 from typing import List, Optional, Dict, Any
 from .identifiers import ApiVersion, Locale, MarketRegion
-from .utils import timestamp_to_datetime
+from .utils import timestamp_to_datetime, check_for_updates
 from .response import ApiResponse
 from tqdm import tqdm
+import threading
 
 
 class Market:
@@ -23,9 +24,7 @@ class Market:
         self._api_region = region.value
         self._api_lang = language.value
         self._session = requests.Session()
-        print("Stay Updated!")
-        print("Join our Discord community for the latest updates, news, and exclusive information:")
-        print("https://discord.gg/hSWHfhSpDe")
+        threading.Thread(target=check_for_updates(), daemon=True).start()
 
     async def _make_request_async(self, method: str, endpoint: str, json_data: Optional[Any] = None,
                                   data: Optional[Any] = None, headers: Optional[Dict] = None,
