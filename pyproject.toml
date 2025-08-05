@@ -1,7 +1,8 @@
 [project]
 name = "bdomarket"
-version = "0.2.9"
+version = "0.2.10"
 description = "API client for BDO market"
+homepage = "https://github.com/Fizzor96/bdomarket"
 authors = [
     {name = "Szőke Dominik", email = "szokedominik@gmail.com"}
 ]
@@ -20,6 +21,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 license = { file = "LICENSE" }
+
+[project.urls]
+Repository = "https://github.com/Fizzor96/bdomarket"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
