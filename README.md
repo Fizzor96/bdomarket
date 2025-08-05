@@ -42,7 +42,7 @@
   <p align="center">
     API client for BDO market data
     <br />
-    <!-- <a href="https://github.com/Fizzor96/bdomarket"><strong>Explore the docs »</strong></a> -->
+    <a href="https://fizzor96.github.io/bdomarket/"><strong>Explore the docs »</strong></a>
     <!-- <br /> -->
     <br />
     <a href="https://pypi.org/project/bdomarket/">PyPI</a>
