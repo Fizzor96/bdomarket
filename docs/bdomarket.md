@@ -1,0 +1,3 @@
+# `bdomarket.bdomarket`
+
+::: bdomarket.bdomarket

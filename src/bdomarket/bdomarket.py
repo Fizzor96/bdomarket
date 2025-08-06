@@ -11,16 +11,16 @@ import threading
 
 
 class Market:
-    def __init__(self, region: MarketRegion = MarketRegion.EU, api_version: ApiVersion = ApiVersion.V2, language: Locale = Locale.English):
-        """ Initializes the Market object with the specified region, API version, and language.
+    def __init__(self, region: MarketRegion = MarketRegion.EU, apiversion: ApiVersion = ApiVersion.V2, language: Locale = Locale.English):
+        """Initializes the Market object with the specified region, API version, and language.
 
         Args:
-            region (AvailableRegions, optional): The region to use for the API requests. Defaults to AvailableRegions.EU.
-            apiversion (AvailableApiVersions, optional): The API version to use for the requests. Defaults to AvailableApiVersions.V2.
-            language (SupportedLanguages, optional): The language to use for the API responses. Defaults to SupportedLanguages.English.
+            region (MarketRegion, optional): The region to use for the API requests. Defaults to AvailableRegions.EU.
+            apiversion (ApiVersion, optional): The API version to use for the requests. Defaults to AvailableApiVersions.V2.
+            language (Locale, optional): The language to use for the API responses. Defaults to SupportedLanguages.English.
         """
         self._base_url = "https://api.arsha.io"
-        self._api_version = api_version.value
+        self._api_version = apiversion.value
         self._api_region = region.value
         self._api_lang = language.value
         self._session = requests.Session()
@@ -153,8 +153,8 @@ class Market:
         """Get price history for an item or list of items. If multiple ids are given, returns a JsonArray of JsonObject of the items' price history. If only one id is given, returns a JsonObject of the item's price history.
 
         Args:
-            id (List[str]): itemid(s)
-            sid (List[str]): subid(s) like enhancement level
+            ids (List[str]): itemid(s)
+            sids (List[str]): subid(s) like enhancement level
             convertdate (bool): Convert unix-like timestamp to UTC datetime. Defaults to True.
             formatprice (bool): Format price, adding separator (,). Defaults to False.
 
@@ -185,8 +185,8 @@ class Market:
         """Get price history for an item or list of items. If multiple ids are given, returns a JsonArray of JsonObject of the items' price history. If only one id is given, returns a JsonObject of the item's price history.
 
         Args:
-            id (List[str]): itemid(s)
-            sid (List[str]): subid(s) like enhancement level
+            ids (List[str]): itemid(s)
+            sids (List[str]): subid(s) like enhancement level
             convertdate (bool): Convert unix-like timestamp to UTC datetime. Defaults to True.
             formatprice (bool): Format price, adding separator (,). Defaults to False.
 
@@ -218,8 +218,8 @@ class Market:
         """Get price history for an item or list of items. If multiple ids are given, returns a JsonArray of JsonObject of the items' price history. If only one id is given, returns a JsonObject of the item's price history.
 
         Args:
-            id (List[str]): itemid(s)
-            sid (List[str]): subid(s) like enhancement level
+            ids (List[str]): itemid(s)
+            sids (List[str]): subid(s) like enhancement level
             convertdate (bool): Convert unix-like timestamp to UTC datetime. Defaults to True.
             formatprice (bool): Format price, adding separator (,). Defaults to False.
 
@@ -250,8 +250,8 @@ class Market:
         """Get price history for an item or list of items. If multiple ids are given, returns a JsonArray of JsonObject of the items' price history. If only one id is given, returns a JsonObject of the item's price history.
 
         Args:
-            id (List[str]): itemid(s)
-            sid (List[str]): subid(s) like enhancement level
+            ids (List[str]): itemid(s)
+            sids (List[str]): subid(s) like enhancement level
             convertdate (bool): Convert unix-like timestamp to UTC datetime. Defaults to True.
             formatprice (bool): Format price, adding separator (,). Defaults to False.
 
@@ -326,8 +326,8 @@ class Market:
         """Get items from a specific category or subcategory.
 
         Args:
-            maincategory (str): maincategory
-            subcategory (str): subcategory
+            main_category (str): maincategory
+            sub_category (str): subcategory
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items in the specified category or subcategory.
@@ -340,8 +340,8 @@ class Market:
         """Get items from a specific category or subcategory.
 
         Args:
-            maincategory (str): maincategory
-            subcategory (str): subcategory
+            main_category (str): maincategory
+            sub_category (str): subcategory
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items in the specified category or subcategory.
@@ -354,8 +354,8 @@ class Market:
         """Get items from a specific category or subcategory.
 
         Args:
-            maincategory (str): maincategory
-            subcategory (str): subcategory
+            main_category (str): maincategory
+            sub_category (str): subcategory
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items in the specified category or subcategory.
@@ -368,8 +368,8 @@ class Market:
         """Get items from a specific category or subcategory.
 
         Args:
-            maincategory (str): maincategory
-            subcategory (str): subcategory
+            main_category (str): maincategory
+            sub_category (str): subcategory
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items in the specified category or subcategory.
@@ -382,7 +382,7 @@ class Market:
         """Get parsed item or items from min to max enhance (if available).
 
         Args:
-            id (list[str]): itemid(s)
+            ids (list[str]): itemid(s)
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their subid(s) (enhancement level).
@@ -393,7 +393,7 @@ class Market:
         """Get parsed item or items from min to max enhance (if available).
 
         Args:
-            id (list[str]): itemid(s)
+            ids (list[str]): itemid(s)
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their subid(s) (enhancement level).
@@ -404,7 +404,7 @@ class Market:
         """Get parsed item or items from min to max enhance (if available).
 
         Args:
-            id (list[str]): itemid(s)
+            ids (list[str]): itemid(s)
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their subid(s) (enhancement level).
@@ -415,7 +415,7 @@ class Market:
         """Get parsed item or items from min to max enhance (if available).
 
         Args:
-            id (list[str]): itemid(s)
+            ids (list[str]): itemid(s)
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their subid(s) (enhancement level).
@@ -426,8 +426,8 @@ class Market:
         """Get orders of an item or list of items
 
         Args:
-            id (list[str]): itemid(s)
-            sid (list[str]): subid(s)
+            ids (list[str]): itemid(s)
+            sids (list[str]): subid(s)
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items' bidding information.
@@ -439,8 +439,8 @@ class Market:
         """Get orders of an item or list of items
 
         Args:
-            id (list[str]): itemid(s)
-            sid (list[str]): subid(s)
+            ids (list[str]): itemid(s)
+            sids (list[str]): subid(s)
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items' bidding information.
@@ -452,8 +452,8 @@ class Market:
         """Get orders of an item or list of items
 
         Args:
-            id (list[str]): itemid(s)
-            sid (list[str]): subid(s)
+            ids (list[str]): itemid(s)
+            sids (list[str]): subid(s)
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items' bidding information.
@@ -465,8 +465,8 @@ class Market:
         """Get orders of an item or list of items
 
         Args:
-            id (list[str]): itemid(s)
-            sid (list[str]): subid(s)
+            ids (list[str]): itemid(s)
+            sids (list[str]): subid(s)
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items' bidding information.
@@ -616,9 +616,9 @@ class Market:
         """Dump the item database from startid to endid in chunks of chunksize.
 
         Args:
-            startid (int): _description_
-            endid (int): _description_
-            chunksize (int, optional): The number of items to fetch in each request. Defaults to 100.
+            start_id (int): Start id.
+            end_id (int): End id.
+            chunk_size (int, optional): The number of items to fetch in each request. Defaults to 100.
 
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their id, name, and sid.

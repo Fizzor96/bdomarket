@@ -11,6 +11,8 @@ from collections import defaultdict
 from importlib.metadata import version, PackageNotFoundError
 
 def check_for_updates():
+    """Check if a package has an update available on PyPI.
+    """
     package = "bdomarket"
     try:
         installed_version = version(package)
@@ -34,41 +36,88 @@ def check_for_updates():
     print("Join our Discord community for the latest updates, news, and exclusive information:")
     print("https://discord.gg/hSWHfhSpDe")
 
-
 def timestamp_to_datetime(timestamp: float) -> datetime:
+    """Convert a timestamp to a UTC datetime object.
+
+    Args:
+        timestamp (float): Unix timestamp.
+
+    Returns:
+        datetime: Datetime object in UTC timezone.
+    """
     return datetime.fromtimestamp(timestamp, tz=timezone.utc)
 
-
 def datetime_to_timestamp(dt: datetime) -> float:
+    """Convert a datetime object to a Unix timestamp.
+
+    Args:
+        dt (datetime): Datetime object.
+
+    Returns:
+        float: Unix timestamp.
+    """
     return dt.timestamp()
 
+def get_items_by_name_from_db(db: str, name: str = "") -> list:
+    """Retrieve items from a database by name.
 
-def get_items_by_name_from_db(db, name: str = ""):
+    Args:
+        db (str): Database containing items with 'name' keys.
+        name (str, optional): Name to search for. Defaults to "".
+
+    Returns:
+        list: List of items matching the given name.
+    """
     name_index = defaultdict(list)
     for item in db:
         name_index[item["name"]].append(item)
     return name_index.get(name, [])
 
+def get_items_by_id_from_db(db: str, id: int = 0) -> list:
+    """Retrieve items from a database by ID.
 
-def get_items_by_id_from_db(db, id: int = 0):
+    Args:
+        db (str): Database containing items with 'id' keys.
+        id (int, optional): ID to search for. Defaults to 0.
+
+    Returns:
+        list: List of items matching the given ID.
+    """
     id_index = defaultdict(list)
     for item in db:
         id_index[item["id"]].append(item)
     return id_index.get(id, [])
 
-def search_items_by_name(file_path, search_string):
+def search_items_by_name(file_path, search_string) -> list:
+    """Search items by name in a JSON file.
+
+    Args:
+        file_path (str): Path to the JSON file.
+        search_string (str): String to search in item names.
+
+    Returns:
+        list: List of items with names containing the search string (case-insensitive).
+    """
     with open(file_path, "r", encoding="utf-8") as file:
         data = json.load(file)
     matches = [item for item in data['content']
                if search_string.lower() in item['name'].lower()]
     return matches
 
-def search_items_by_id(file_path, search_id):
+def search_items_by_id(file_path, search_id) -> list:
+    """Search items by ID in a JSON file.
+
+    Args:
+        file_path (str): Path to the JSON file.
+        search_id (int): ID to search for.
+
+    Returns:
+        list: List of items with the specified ID.
+    """
     with open(file_path, "r", encoding="utf-8") as file:
         data = json.load(file)
     matches = [item for item in data['content'] if item['id'] == search_id]
     return matches
-
 
 class Pig:
     def __init__(self, region: PigCave = PigCave.EU):
@@ -107,14 +156,22 @@ class Pig:
                 message=f"Request failed: {str(e)}",
             )
 
-
-class Boss():
+class Boss:
     def __init__(self, server: Server = Server.EU):
+        """Initialize a Boss object with a server region.
+
+        Args:
+            server (Server, optional): Server region for boss timer data. Defaults to Server.EU.
+        """
         self.__url = f"https://mmotimer.com/bdo/?server={server.value}"
         self.__data = []
 
     def Scrape(self) -> "Boss":
-        """Scrape the boss timer data from the website."""
+        """Scrape the boss timer data from the website.
+
+        Returns:
+            Boss: The instance itself for method chaining.
+        """
         self.__content = requests.get(self.__url, headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "Accept-Language": "en-US,en;q=0.9",
@@ -126,31 +183,27 @@ class Boss():
 
         table = soup.find('table', class_='main-table')
         thead = table.find('thead')  # type: ignore
-        # time_headers = [th.text.strip() for th in thead.find_all('th')]
-        time_headers = [th.text.strip()
-                        for th in thead.find_all('th')][1:]  # type: ignore
+        time_headers = [th.text.strip() for th in thead.find_all('th')][1:]  # type: ignore
         self.__data = []
 
-        # Iterate rows (days) in <tbody>
         tbody = table.find('tbody')  # type: ignore
         for row in tbody.find_all('tr'):  # type: ignore
             cells = row.find_all(['th', 'td'])  # type: ignore
-            day = cells[0].text.strip()  # first cell is day
+            day = cells[0].text.strip()
 
-            for i, cell in enumerate(cells[1:]):  # skip day column
+            for i, cell in enumerate(cells[1:]):
                 time = time_headers[i]
 
                 if cell.text.strip() == "-":
-                    continue  # skip empty slots
+                    continue
 
-                bosses = [span.text.strip()
-                          for span in cell.find_all('span')]  # type: ignore
+                bosses = [span.text.strip() for span in cell.find_all('span')]  # type: ignore
 
                 if bosses:
                     self.__data.append([f"{day} {time}", ', '.join(bosses)])
         return self
 
-    def GetTimer(self):
+    def GetTimer(self) -> list:
         """Get the scraped boss timer data.
 
         Returns:
@@ -158,53 +211,51 @@ class Boss():
         """
         return self.__data
 
-    def GetTimerJSON(self, indent=2):
+    def GetTimerJSON(self, indent=2) -> str:
         """Convert the boss timer data to a JSON string.
 
         Args:
-            indent (int, optional): The number of spaces to use for indentation in the JSON output. Defaults to 2.
+            indent (int, optional): Number of spaces for JSON indentation. Defaults to 2.
 
         Returns:
-            str: A JSON string representation of the boss timer data.
+            str: JSON string of the boss timer data.
         """
         return json.dumps(self.__data, indent=indent)
-
 
 class Item:
     def __init__(self, id: str = "735008", name: str = ""):
         """Initialize an Item object.
 
         Args:
-            id (str, optional): The unique identifier for the item. Defaults to "735008".
-            name (str, optional): The name of the item. Defaults to "Blackstar Shuriken".
-            sid (str, optional): The sidentifier for the item can be the enchancement level. Defaults to "0".
+            id (str, optional): Unique identifier for the item. Defaults to "735008".
+            name (str, optional): Name of the item. Defaults to "".
         """
         self.id = id
-        self.name = name  # TODO: implement query by name
+        self.name = name
         self.sid = 0
         self.grade = 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Representation of the Item object.
 
         Returns:
-            str: A string representation of the item including its id, name, and sid.
+            str: String representation with id, name, and sid.
         """
         return f"Item(id={self.id}, name='{self.name}', sid={self.sid})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation of the Item object.
 
         Returns:
-            str: A string describing the item with its name, id, and sid.
+            str: Descriptive string with name, id, and sid.
         """
         return f"Item: {self.name} (ID: {self.id}, SID: {self.sid})"
 
-    def to_dict(self):
-        """Convert the item to a dictionary representation.
+    def to_dict(self) -> dict:
+        """Convert the item to a dictionary.
 
         Returns:
-            dict: A dictionary containing the item's id, name, and sid.
+            dict: Dictionary with item’s id, name, sid, and grade.
         """
         return {
             "item_id": self.id,
@@ -214,35 +265,30 @@ class Item:
         }
 
     def GetIcon(self, folderpath: str = "icons", isrelative: bool = True, filenameprop: ItemProp = ItemProp.ID):
-        """Download the icon for the item and save it to the specified folder.
+        """Download and save the item’s icon to a specified folder.
 
         Args:
-            folderpath (str, optional): The path to the folder where the icon will be saved. Defaults to "icons".
-            isrelative (bool, optional): If True, the folderpath is treated as relative to the current file. If False, it is treated as absolute. Defaults to True.
-            filenameprop (ItemProp, optional): Determines whether to use the item's ID or name for the filename. Defaults to ItemProp.ID.
+            folderpath (str, optional): Path to save the icon. Defaults to "icons".
+            isrelative (bool, optional): If True, folderpath is relative to the current file. If False, it’s absolute. Defaults to True.
+            filenameprop (ItemProp, optional): Use item’s ID or name for the filename. Defaults to ItemProp.ID.
         """
         if not folderpath:
             folderpath = "icons"
 
-        # Determine the folder path based on whether it is relative or absolute
         if isrelative:
             folder = folderpath
         else:
             folder = os.path.join(os.path.dirname(__file__), folderpath)
 
-        # Check if the folder exists
         if not os.path.exists(folder):
             os.makedirs(folder)
 
-        # Check if file already exists with id
         if os.path.exists(os.path.join(folder, f"{self.id}.png")) and filenameprop == ItemProp.ID:
             return
 
-        # Check if file already exists with name
         if os.path.exists(os.path.join(folder, f"{self.name}.png")) and filenameprop == ItemProp.NAME:
             return
 
-        # If folder exist but file does not, we can download the icon
         response = requests.get(
             f"https://s1.pearlcdn.com/NAEU/TradeMarket/Common/img/BDO/item/{self.id}.png")
         if 199 < response.status_code < 300:

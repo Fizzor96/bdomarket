@@ -1,9 +1,18 @@
 site_name: bdomarket
 site_url: https://fizzor96.github.io/bdomarket/
+
+nav:
+  - Home: index.md
+  - Modules:
+      - Identifiers: identifiers.md
+      - Market Client: bdomarket.md
+      - Responses: response.md
+      - Utilities: utils.md
+
 theme:
+  name: material
   logo: assets/bdomarket_discord.svg
   favicon: assets/bdomarket_discord.svg
-  name: material
   font:
     text: Merriweather Sans
     code: Red Hat Mono
@@ -24,13 +33,40 @@ theme:
       primary: blue
       accent: deep orange
 
+# Uncomment this if your code is in src/
+# python_path: src
+
+# watch:
+#   - src
+
 markdown_extensions:
-  - attr_list
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true
+  - attr_list
+  - codehilite
+  - footnotes
+  - tables
+  - def_list
+  - abbr
+  - md_in_html
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.snippets
 
 plugins:
   - search
   - mkdocstrings:
-      default_handler: python
+      handlers:
+        python:
+          options:
+            # setup_commands:
+            #     - import sys; sys.path.insert(0, "src")
+            # paths: [src]
+            docstring_style: google
+            # show_enum_members: true
+            show_source: false
+            inherited_members: true

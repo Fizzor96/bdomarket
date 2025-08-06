@@ -1,0 +1,3 @@
+# `bdomarket.response`
+
+::: bdomarket.response
