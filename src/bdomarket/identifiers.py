@@ -5,8 +5,6 @@ class ApiVersion(enum.Enum):
     """"""
     V2 = "v2"
     """"""
-    V3 = "v3"
-    """"""
 
 class MarketRegion(enum.Enum):
     NA = "na"

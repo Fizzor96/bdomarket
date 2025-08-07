@@ -4,8 +4,8 @@ site_url: https://fizzor96.github.io/bdomarket/
 nav:
   - Home: index.md
   - Modules:
+      - Market: bdomarket.md
       - Identifiers: identifiers.md
-      - Market Client: bdomarket.md
       - Responses: response.md
       - Utilities: utils.md
 

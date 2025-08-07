@@ -70,7 +70,7 @@ def get_items_by_name_from_db(db: str, name: str = "") -> list:
     """
     name_index = defaultdict(list)
     for item in db:
-        name_index[item["name"]].append(item)
+        name_index[item["name"]].append(item) # type: ignore
     return name_index.get(name, [])
 
 def get_items_by_id_from_db(db: str, id: int = 0) -> list:
@@ -85,7 +85,7 @@ def get_items_by_id_from_db(db: str, id: int = 0) -> list:
     """
     id_index = defaultdict(list)
     for item in db:
-        id_index[item["id"]].append(item)
+        id_index[item["id"]].append(item) # type: ignore
     return id_index.get(id, [])
 
 def search_items_by_name(file_path, search_string) -> list:

@@ -1,6 +1,6 @@
 [project]
 name = "bdomarket"
-version = "0.2.15"
+version = "0.2.16"
 description = "API client for BDO market"
 homepage = "https://github.com/Fizzor96/bdomarket"
 authors = [
