@@ -1,6 +1,6 @@
 [project]
 name = "bdomarket"
-version = "0.2.16"
+version = "0.2.17"
 description = "API client for BDO market"
 homepage = "https://github.com/Fizzor96/bdomarket"
 authors = [
@@ -12,8 +12,7 @@ dependencies = [
     "requests (>=2.32.4,<3.0.0)",
     "beautifulsoup4 (>=4.13.4,<5.0.0)",
     "aiohttp (>=3.12.14,<4.0.0)",
-    "mkdocstrings-python (>=1.16.12,<2.0.0)",
-    "mkdocstrings (>=0.30.0,<0.31.0)",
+    "tqdm (>=4.67.1,<5.0.0)",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -33,7 +32,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6.1"
-mkdocstrings = "^0.30.0"
 
 [project.optional-dependencies]
 docs = [

@@ -329,11 +329,11 @@ description = "Cross-platform colored terminal text."
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 groups = ["main", "docs"]
+markers = "platform_system == \"Windows\""
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
-markers = {docs = "platform_system == \"Windows\""}
 
 [[package]]
 name = "frozenlist"
@@ -466,21 +466,6 @@ python-dateutil = ">=2.8.1"
 
 [package.extras]
 dev = ["flake8", "markdown", "twine", "wheel"]
-
-[[package]]
-name = "griffe"
-version = "1.9.0"
-description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-files = [
-    {file = "griffe-1.9.0-py3-none-any.whl", hash = "sha256:bcf90ee3ad42bbae70a2a490c782fc8e443de9b84aa089d857c278a4e23215fc"},
-    {file = "griffe-1.9.0.tar.gz", hash = "sha256:b5531cf45e9b73f0842c2121cc4d4bcbb98a55475e191fc9830e7aef87a920a0"},
-]
-
-[package.dependencies]
-colorama = ">=0.4"
 
 [[package]]
 name = "idna"
@@ -675,23 +660,6 @@ i18n = ["babel (>=2.9.0)"]
 min-versions = ["babel (==2.9.0)", "click (==7.0)", "colorama (==0.4) ; platform_system == \"Windows\"", "ghp-import (==1.0)", "importlib-metadata (==4.4) ; python_version < \"3.10\"", "jinja2 (==2.11.1)", "markdown (==3.3.6)", "markupsafe (==2.0.1)", "mergedeep (==1.3.4)", "mkdocs-get-deps (==0.2.0)", "packaging (==20.5)", "pathspec (==0.11.1)", "pyyaml (==5.1)", "pyyaml-env-tag (==0.1)", "watchdog (==2.0)"]
 
 [[package]]
-name = "mkdocs-autorefs"
-version = "1.4.2"
-description = "Automatically link across pages in MkDocs."
-optional = false
-python-versions = ">=3.9"
-groups = ["main", "docs"]
-files = [
-    {file = "mkdocs_autorefs-1.4.2-py3-none-any.whl", hash = "sha256:83d6d777b66ec3c372a1aad4ae0cf77c243ba5bcda5bf0c6b8a2c5e7a3d89f13"},
-    {file = "mkdocs_autorefs-1.4.2.tar.gz", hash = "sha256:e2ebe1abd2b67d597ed19378c0fff84d73d1dbce411fce7a7cc6f161888b6749"},
-]
-
-[package.dependencies]
-Markdown = ">=3.3"
-markupsafe = ">=2.0.1"
-mkdocs = ">=1.1"
-
-[[package]]
 name = "mkdocs-get-deps"
 version = "0.2.0"
 description = "MkDocs extension that lists all dependencies according to a mkdocs.yml file"
@@ -708,51 +676,6 @@ importlib-metadata = {version = ">=4.3", markers = "python_version < \"3.10\""}
 mergedeep = ">=1.3.4"
 platformdirs = ">=2.2.0"
 pyyaml = ">=5.1"
-
-[[package]]
-name = "mkdocstrings"
-version = "0.30.0"
-description = "Automatic documentation from sources, for MkDocs."
-optional = false
-python-versions = ">=3.9"
-groups = ["main", "docs"]
-files = [
-    {file = "mkdocstrings-0.30.0-py3-none-any.whl", hash = "sha256:ae9e4a0d8c1789697ac776f2e034e2ddd71054ae1cf2c2bb1433ccfd07c226f2"},
-    {file = "mkdocstrings-0.30.0.tar.gz", hash = "sha256:5d8019b9c31ddacd780b6784ffcdd6f21c408f34c0bd1103b5351d609d5b4444"},
-]
-
-[package.dependencies]
-importlib-metadata = {version = ">=4.6", markers = "python_version < \"3.10\""}
-Jinja2 = ">=2.11.1"
-Markdown = ">=3.6"
-MarkupSafe = ">=1.1"
-mkdocs = ">=1.6"
-mkdocs-autorefs = ">=1.4"
-mkdocstrings-python = {version = ">=1.16.2", optional = true, markers = "extra == \"python\""}
-pymdown-extensions = ">=6.3"
-
-[package.extras]
-crystal = ["mkdocstrings-crystal (>=0.3.4)"]
-python = ["mkdocstrings-python (>=1.16.2)"]
-python-legacy = ["mkdocstrings-python-legacy (>=0.2.1)"]
-
-[[package]]
-name = "mkdocstrings-python"
-version = "1.16.12"
-description = "A Python handler for mkdocstrings."
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-files = [
-    {file = "mkdocstrings_python-1.16.12-py3-none-any.whl", hash = "sha256:22ded3a63b3d823d57457a70ff9860d5a4de9e8b1e482876fc9baabaf6f5f374"},
-    {file = "mkdocstrings_python-1.16.12.tar.gz", hash = "sha256:9b9eaa066e0024342d433e332a41095c4e429937024945fea511afe58f63175d"},
-]
-
-[package.dependencies]
-griffe = ">=1.6.2"
-mkdocs-autorefs = ">=1.4"
-mkdocstrings = ">=0.28.3"
-typing-extensions = {version = ">=4.0", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "multidict"
@@ -1027,25 +950,6 @@ files = [
 ]
 
 [[package]]
-name = "pymdown-extensions"
-version = "10.16.1"
-description = "Extension pack for Python Markdown."
-optional = false
-python-versions = ">=3.9"
-groups = ["main", "docs"]
-files = [
-    {file = "pymdown_extensions-10.16.1-py3-none-any.whl", hash = "sha256:d6ba157a6c03146a7fb122b2b9a121300056384eafeec9c9f9e584adfdb2a32d"},
-    {file = "pymdown_extensions-10.16.1.tar.gz", hash = "sha256:aace82bcccba3efc03e25d584e6a22d27a8e17caa3f4dd9f207e49b787aa9a91"},
-]
-
-[package.dependencies]
-markdown = ">=3.6"
-pyyaml = "*"
-
-[package.extras]
-extra = ["pygments (>=2.19.1)"]
-
-[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 description = "Extensions to the standard Python datetime module"
@@ -1183,6 +1087,28 @@ files = [
     {file = "soupsieve-2.7-py3-none-any.whl", hash = "sha256:6e60cc5c1ffaf1cebcc12e8188320b72071e922c2e897f737cadce79ad5d30c4"},
     {file = "soupsieve-2.7.tar.gz", hash = "sha256:ad282f9b6926286d2ead4750552c8a6142bc4c783fd66b0293547c8fe6ae126a"},
 ]
+
+[[package]]
+name = "tqdm"
+version = "4.67.1"
+description = "Fast, Extensible Progress Meter"
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2"},
+    {file = "tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2"},
+]
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+dev = ["nbval", "pytest (>=6)", "pytest-asyncio (>=0.24)", "pytest-cov", "pytest-timeout"]
+discord = ["requests"]
+notebook = ["ipywidgets (>=6)"]
+slack = ["slack-sdk"]
+telegram = ["requests"]
 
 [[package]]
 name = "typing-extensions"
@@ -1403,4 +1329,4 @@ docs = ["mkdocs", "mkdocstrings"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<4.0"
-content-hash = "eafd8f2536e6b6ac6f528144c83a335ff41b3ecc6863e9dfae6857da4c46ec5e"
+content-hash = "1ee5f3d2d3727558b8ef83f49695fb8f2efec47700f230900e7f9ac9f6d9aea5"
