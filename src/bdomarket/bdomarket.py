@@ -1,16 +1,26 @@
-import requests
-import json
-import aiohttp
+# pylint: disable=missing-module-docstring, line-too-long
 import asyncio
-from typing import List, Optional, Dict, Any
-from .identifiers import ApiVersion, Locale, MarketRegion
-from .utils import timestamp_to_datetime, check_for_updates
-from .response import ApiResponse
-from tqdm import tqdm
+import json
 import threading
+from typing import Any, Dict, List, Optional
+
+import aiohttp
+import requests
+from tqdm import tqdm
+
+from .identifiers import ApiVersion, Locale, MarketRegion
+from .response import ApiResponse
+from .utils import check_for_updates, timestamp_to_datetime, experimental
 
 
 class Market:
+    """
+    The Market class provides synchronous and asynchronous methods to interact with the Black Desert Online market API,
+    allowing retrieval of item data, price history, bidding information, and other market-related endpoints for different regions and languages.
+    Usage:
+        market = Market(region=MarketRegion.EU, apiversion=ApiVersion.V2, language=Locale.English)
+        response = market.get_market_price_info_sync(ids=["12345"], sids=["0"])
+    """
     def __init__(self, region: MarketRegion = MarketRegion.EU, apiversion: ApiVersion = ApiVersion.V2, language: Locale = Locale.English):
         """Initializes the Market object with the specified region, API version, and language.
 
@@ -556,7 +566,7 @@ class Market:
             content=json.loads(result.content)
         )
 
-    async def get_item(self, ids: List[str] = []) -> ApiResponse:
+    async def get_item(self, ids: List[str]) -> ApiResponse:
         """Get item information by its id(s).
 
         Args:
@@ -584,7 +594,7 @@ class Market:
         except aiohttp.ClientError as e:
             return ApiResponse(message=str(e))
 
-    def get_item_sync(self, ids: List[str] = []) -> ApiResponse:
+    def get_item_sync(self, ids: List[str]) -> ApiResponse:
         """Get item information by its id(s).
 
         Args:
@@ -611,7 +621,7 @@ class Market:
         except aiohttp.ClientError as e:
             return ApiResponse(message=str(e))
 
-    # NOTE: EXPERIMENTAL! No point making sync for this function
+    @experimental("beta")
     async def item_database_dump(self, start_id: int, end_id: int, chunk_size: int = 100, showstatus: bool = False) -> ApiResponse:
         """Dump the item database from startid to endid in chunks of chunksize.
 

@@ -1,14 +1,32 @@
+# pylint: disable=missing-module-docstring, line-too-long
+import json
+import os
+from functools import wraps
+from collections import defaultdict
+from datetime import datetime, timezone
+from importlib.metadata import PackageNotFoundError, version
+from typing import Optional
+
+import aiohttp
 import requests
 from bs4 import BeautifulSoup
-import json
-from datetime import datetime, timezone
-import os
-from .identifiers import Server, ItemProp, PigCave
+
+from .identifiers import ItemProp, PigCave, Server
 from .response import ApiResponse
-import aiohttp
-from typing import Optional
-from collections import defaultdict
-from importlib.metadata import version, PackageNotFoundError
+
+def experimental(stage="experimental"):
+    """Decorator to mark a function as experimental, printing a warning when it is called.
+
+    Args:
+        stage (str, optional): The experimental stage label to display. Defaults to "experimental".
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            print(f"⚠️  {func.__name__} is {stage}.")
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 def check_for_updates():
     """Check if a package has an update available on PyPI.
@@ -73,7 +91,7 @@ def get_items_by_name_from_db(db: str, name: str = "") -> list:
         name_index[item["name"]].append(item) # type: ignore
     return name_index.get(name, [])
 
-def get_items_by_id_from_db(db: str, id: int = 0) -> list:
+def get_items_by_id_from_db(db: str, item_id: int = 0) -> list:
     """Retrieve items from a database by ID.
 
     Args:
@@ -86,7 +104,7 @@ def get_items_by_id_from_db(db: str, id: int = 0) -> list:
     id_index = defaultdict(list)
     for item in db:
         id_index[item["id"]].append(item) # type: ignore
-    return id_index.get(id, [])
+    return id_index.get(item_id, [])
 
 def search_items_by_name(file_path, search_string) -> list:
     """Search items by name in a JSON file.
@@ -119,7 +137,10 @@ def search_items_by_id(file_path, search_id) -> list:
     matches = [item for item in data['content'] if item['id'] == search_id]
     return matches
 
+@experimental("beta")
 class Pig:
+    """Handles interactions with the Pig Cave API to fetch status data for a specified region.
+    """
     def __init__(self, region: PigCave = PigCave.EU):
         """Initialize Pig with a region.
 
@@ -129,6 +150,7 @@ class Pig:
         self._region = region
         self._status: Optional[str] = None
 
+    @experimental("beta")
     async def get_status(self) -> ApiResponse:
         """Fetch Pig Cave status (garmoth data).
 
@@ -156,7 +178,10 @@ class Pig:
                 message=f"Request failed: {str(e)}",
             )
 
+@experimental("beta")
 class Boss:
+    """Scrapes and provides boss timer data from mmotimer.com for a specified server region.
+    """
     def __init__(self, server: Server = Server.EU):
         """Initialize a Boss object with a server region.
 
@@ -165,8 +190,10 @@ class Boss:
         """
         self.__url = f"https://mmotimer.com/bdo/?server={server.value}"
         self.__data = []
+        self.__content = ""
 
-    def Scrape(self) -> "Boss":
+    @experimental("beta")
+    def scrape(self) -> "Boss":
         """Scrape the boss timer data from the website.
 
         Returns:
@@ -177,7 +204,7 @@ class Boss:
             "Accept-Language": "en-US,en;q=0.9",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
             "Connection": "keep-alive",
-        }).content
+        }, timeout=5).content
 
         soup = BeautifulSoup(self.__content, 'html.parser')
 
@@ -203,7 +230,8 @@ class Boss:
                     self.__data.append([f"{day} {time}", ', '.join(bosses)])
         return self
 
-    def GetTimer(self) -> list:
+    @experimental("beta")
+    def get_timer(self) -> list:
         """Get the scraped boss timer data.
 
         Returns:
@@ -211,7 +239,8 @@ class Boss:
         """
         return self.__data
 
-    def GetTimerJSON(self, indent=2) -> str:
+    @experimental("beta")
+    def get_timer_json(self, indent=2) -> str:
         """Convert the boss timer data to a JSON string.
 
         Args:
@@ -222,19 +251,23 @@ class Boss:
         """
         return json.dumps(self.__data, indent=indent)
 
+@experimental("beta")
 class Item:
-    def __init__(self, id: str = "735008", name: str = ""):
+    """Represents an item with its ID, name, SID, and grade, and provides methods for icon retrieval and serialization.
+    """
+    def __init__(self, item_id: str = "735008", name: str = ""):
         """Initialize an Item object.
 
         Args:
             id (str, optional): Unique identifier for the item. Defaults to "735008".
             name (str, optional): Name of the item. Defaults to "".
         """
-        self.id = id
+        self.id = item_id
         self.name = name
         self.sid = 0
         self.grade = 0
 
+    @experimental("beta")
     def __repr__(self) -> str:
         """Representation of the Item object.
 
@@ -243,6 +276,7 @@ class Item:
         """
         return f"Item(id={self.id}, name='{self.name}', sid={self.sid})"
 
+    @experimental("beta")
     def __str__(self) -> str:
         """String representation of the Item object.
 
@@ -251,6 +285,7 @@ class Item:
         """
         return f"Item: {self.name} (ID: {self.id}, SID: {self.sid})"
 
+    @experimental("beta")
     def to_dict(self) -> dict:
         """Convert the item to a dictionary.
 
@@ -264,7 +299,8 @@ class Item:
             "grade": self.grade
         }
 
-    def GetIcon(self, folderpath: str = "icons", isrelative: bool = True, filenameprop: ItemProp = ItemProp.ID):
+    @experimental("beta")
+    def get_icon(self, folderpath: str = "icons", isrelative: bool = True, filenameprop: ItemProp = ItemProp.ID):
         """Download and save the item’s icon to a specified folder.
 
         Args:
@@ -290,7 +326,7 @@ class Item:
             return
 
         response = requests.get(
-            f"https://s1.pearlcdn.com/NAEU/TradeMarket/Common/img/BDO/item/{self.id}.png")
+            f"https://s1.pearlcdn.com/NAEU/TradeMarket/Common/img/BDO/item/{self.id}.png", timeout=5)
         if 199 < response.status_code < 300:
             with open(f"{folder}/{self.id if filenameprop == ItemProp.ID else self.name}.png", "wb") as file:
                 file.write(response.content)

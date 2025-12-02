@@ -156,7 +156,7 @@ async def async_example():
     pigstatus.save_to_file("responses/async/pigcave/status.json")
     
     # Initialize Market with EU region, V2 API, English locale
-    async with bdomarket.Market(region=bdomarket.MarketRegion.EU, api_version=bdomarket.ApiVersion.V2, language=bdomarket.Locale.English) as market:
+    async with bdomarket.Market(region=bdomarket.MarketRegion.EU, apiversion=bdomarket.ApiVersion.V2, language=bdomarket.Locale.English) as market:
         # Get world market wait list (async)
         wait_list = await market.get_world_market_wait_list()
         # print("World Market Wait List:", wait_list.success, wait_list.status_code)
@@ -277,7 +277,7 @@ def sync_example():
     item.GetIcon("responses/sync/icons", True, bdomarket.ItemProp.ID)
     print("Item Icons saved to responses/icons")
     
-    market = bdomarket.Market(region=bdomarket.MarketRegion.EU, api_version=bdomarket.ApiVersion.V2, language=bdomarket.Locale.English)
+    market = bdomarket.Market(region=bdomarket.MarketRegion.EU, apiversion=bdomarket.ApiVersion.V2, language=bdomarket.Locale.English)
     # Get world market wait list (sync)
     wait_list = market.get_world_market_wait_list_sync()
     print("World Market Wait List:", wait_list.success, wait_list.status_code)

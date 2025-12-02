@@ -1,7 +1,24 @@
+# pylint: disable=missing-module-docstring, line-too-long
 import os
 import json
 
 class ApiResponse:
+    """
+    Represents a standardized API response, encapsulating success status, HTTP status code, message, and content.
+
+    Args:
+        success (bool): Indicates if the response was successful.
+        status_code (int): The HTTP status code of the response.
+        message (str): A message describing the response.
+        content (str): The content of the response.
+
+    Attributes:
+        success (bool): Indicates if the response was successful.
+        status_code (int): The HTTP status code of the response.
+        message (str): A message describing the response.
+        content (str): The content of the response.
+        content (str): The content of the response, typically in JSON format.
+    """
     def __init__(self, success: bool = False, status_code: int = -1, message: str = "", content: str = ""):
         self.success = success
         self.status_code = status_code

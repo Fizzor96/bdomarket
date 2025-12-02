@@ -1,6 +1,6 @@
 [project]
 name = "bdomarket"
-version = "0.2.18"
+version = "0.2.20"
 description = "API client for BDO market"
 homepage = "https://github.com/Fizzor96/bdomarket"
 authors = [
@@ -15,6 +15,7 @@ dependencies = [
     "tqdm (>=4.67.1,<5.0.0)",
     "mkdocstrings-python (>=1.16.12,<2.0.0)",
     "mkdocstrings (>=0.30.0,<0.31.0)",
+    "asyncio (>=4.0.0,<5.0.0)",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
