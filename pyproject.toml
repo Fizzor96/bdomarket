@@ -25,7 +25,7 @@ license = {file = "LICENSE"}
 name = "bdomarket"
 readme = "README.md"
 requires-python = ">=3.1,<4.0"
-version = "0.3.0"
+version = "0.3.1"
 
 [project.urls]
 Repository = "https://github.com/Fizzor96/bdomarket"

@@ -115,7 +115,20 @@ class BaseMarket:
 
 
 class UnofficialMarket(BaseMarket):
+    """
+    Unofficial market API client for Black Desert Online, inheriting from BaseMarket.
+    Provides synchronous and asynchronous methods for fetching market data.
+    """
+
     def __init__(self, region: MarketRegion = MarketRegion.EU, apiversion: ApiVersion = ApiVersion.V2, language: Locale = Locale.English):
+        """
+        Initializes the UnofficialMarket client.
+
+        Args:
+            region (MarketRegion, optional): Market region. Defaults to MarketRegion.EU.
+            apiversion (ApiVersion, optional): API version. Defaults to ApiVersion.V2.
+            language (Locale, optional): Language locale. Defaults to Locale.English.
+        """
         super().__init__("https://api.blackdesertmarket.com")
         self._api_version = apiversion.value
         self._api_region = "eu"
@@ -124,52 +137,190 @@ class UnofficialMarket(BaseMarket):
 
     @experimental("broken")
     def get_list_hot_sync(self):
+        """
+        Synchronously fetches the hot items list.
+
+        Returns:
+            ApiResponse: API response containing hot items.
+        """
         return self._make_request_sync("GET", "list/hot", params={"region": self._api_region, "language": self._api_lang})
 
     @experimental("broken")
     async def get_list_hot(self):
+        """
+        Asynchronously fetches the hot items list.
+
+        Returns:
+            ApiResponse: API response containing hot items.
+        """
         return await self._make_request_async("GET", "list/hot", params={"region": self._api_region, "language": self._api_lang})
 
     async def get_list_queue(self):
+        """
+        Asynchronously fetches the queue list.
+
+        Returns:
+            ApiResponse: API response containing queue items.
+        """
         return await self._make_request_async("GET", "list/queue", params={"region": self._api_region, "language": self._api_lang})
 
     def get_list_queue_sync(self):
+        """
+        Synchronously fetches the queue list.
+
+        Returns:
+            ApiResponse: API response containing queue items.
+        """
         return self._make_request_sync("GET", "list/queue", params={"region": self._api_region, "language": self._api_lang})
 
     async def get_list_category(self, main_category: int, sub_category: int):
+        """
+        Asynchronously fetches items in a specific category.
+
+        Args:
+            main_category (int): Main category ID.
+            sub_category (int): Sub-category ID.
+
+        Returns:
+            ApiResponse: API response containing category items.
+        """
         return await self._make_request_async("GET", f"list/{main_category}/{sub_category}", params={"region": self._api_region, "language": self._api_lang})
 
     def get_list_category_sync(self, main_category: int, sub_category: int):
+        """
+        Synchronously fetches items in a specific category.
+
+        Args:
+            main_category (int): Main category ID.
+            sub_category (int): Sub-category ID.
+
+        Returns:
+            ApiResponse: API response containing category items.
+        """
         return self._make_request_sync("GET", f"list/{main_category}/{sub_category}", params={"region": self._api_region, "language": self._api_lang})
 
     async def get_item_id(self, item_id: int):
+        """
+        Asynchronously fetches details for a specific item.
+
+        Args:
+            item_id (int): Item ID.
+
+        Returns:
+            ApiResponse: API response containing item details.
+        """
         return await self._make_request_async("GET", f"item/{item_id}", params={"region": self._api_region, "language": self._api_lang})
 
     def get_item_id_sync(self, item_id: int):
+        """
+        Synchronously fetches details for a specific item.
+
+        Args:
+            item_id (int): Item ID.
+
+        Returns:
+            ApiResponse: API response containing item details.
+        """
         return self._make_request_sync("GET", f"item/{item_id}", params={"region": self._api_region, "language": self._api_lang})
 
     async def get_item_id_icon(self, item_id: int):
+        """
+        Asynchronously fetches the icon for a specific item.
+
+        Args:
+            item_id (int): Item ID.
+
+        Returns:
+            ApiResponse: API response containing item icon.
+        """
         return await self._make_request_async("GET", f"item/{item_id}/icon", params={"region": self._api_region, "language": self._api_lang})
 
     def get_item_id_icon_sync(self, item_id: int):
+        """
+        Synchronously fetches the icon for a specific item.
+
+        Args:
+            item_id (int): Item ID.
+
+        Returns:
+            ApiResponse: API response containing item icon.
+        """
         return self._make_request_sync("GET", f"item/{item_id}/icon", params={"region": self._api_region, "language": self._api_lang})
 
     async def get_item_id_enhancement(self, item_id: int, enhancement: int):
+        """
+        Asynchronously fetches enhancement details for a specific item.
+
+        Args:
+            item_id (int): Item ID.
+            enhancement (int): Enhancement level.
+
+        Returns:
+            ApiResponse: API response containing enhancement details.
+        """
         return await self._make_request_async("GET", f"item/{item_id}/{enhancement}", params={"region": self._api_region, "language": self._api_lang})
 
     def get_item_id_enhancement_sync(self, item_id: int, enhancement: int):
+        """
+        Synchronously fetches enhancement details for a specific item.
+
+        Args:
+            item_id (int): Item ID.
+            enhancement (int): Enhancement level.
+
+        Returns:
+            ApiResponse: API response containing enhancement details.
+        """
         return self._make_request_sync("GET", f"item/{item_id}/{enhancement}", params={"region": self._api_region, "language": self._api_lang})
 
     async def get_item_id_enhancement_tooltip(self, item_id: int, enhancement: int):
+        """
+        Asynchronously fetches tooltip for an enhanced item.
+
+        Args:
+            item_id (int): Item ID.
+            enhancement (int): Enhancement level.
+
+        Returns:
+            ApiResponse: API response containing tooltip.
+        """
         return await self._make_request_async("GET", f"item/{item_id}/{enhancement}/tooltip", params={"region": self._api_region, "language": self._api_lang})
 
     def get_item_id_enhancement_tooltip_sync(self, item_id: int, enhancement: int):
+        """
+        Synchronously fetches tooltip for an enhanced item.
+
+        Args:
+            item_id (int): Item ID.
+            enhancement (int): Enhancement level.
+
+        Returns:
+            ApiResponse: API response containing tooltip.
+        """
         return self._make_request_sync("GET", f"item/{item_id}/{enhancement}/tooltip", params={"region": self._api_region, "language": self._api_lang})
 
     async def get_search(self, search_string: str):
+        """
+        Asynchronously searches for items by string.
+
+        Args:
+            search_string (str): Search query.
+
+        Returns:
+            ApiResponse: API response containing search results.
+        """
         return await self._make_request_async("GET", f"search/{search_string}", params={"region": self._api_region, "language": self._api_lang})
 
     def get_search_sync(self, search_string: str):
+        """
+        Synchronously searches for items by string.
+
+        Args:
+            search_string (str): Search query.
+
+        Returns:
+            ApiResponse: API response containing search results.
+        """
         return self._make_request_sync("GET", f"search/{search_string}", params={"region": self._api_region, "language": self._api_lang})
 
 
