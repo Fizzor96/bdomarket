@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring, line-too-long, invalid-name
 import enum
 
+
 class ApiVersion(enum.Enum):
     """
     Represents the available API versions for the BDO Market.
@@ -14,6 +15,7 @@ class ApiVersion(enum.Enum):
     """"""
     V2 = "v2"
     """"""
+
 
 class MarketRegion(enum.Enum):
     """
@@ -72,6 +74,7 @@ class MarketRegion(enum.Enum):
     """"""
     CONSOLE_ASIA = "console_asia"
     """"""
+
 
 class Locale(enum.Enum):
     """
@@ -133,6 +136,7 @@ class Locale(enum.Enum):
     ChineseMainland = "cn"
     """"""
 
+
 class PigCave(enum.Enum):
     """
     Represents the available Pig Cave server identifiers for the BDO Market API.
@@ -176,7 +180,8 @@ class PigCave(enum.Enum):
     """"""
     MENA = "menapig"
     """"""
-    
+
+
 class Server(enum.Enum):
     """
     Represents the available server identifiers for the BDO Market API.
@@ -232,7 +237,8 @@ class Server(enum.Enum):
     """"""
     TW = "tw"
     """"""
-    
+
+
 class ItemProp(enum.Enum):
     """
     Represents item properties used in the BDO Market API.

@@ -267,14 +267,14 @@ async def async_example():
 
 def sync_example():
     # Get boss timer
-    bosstimer = bdomarket.Boss().Scrape()
-    print("Boss Timer:", bosstimer.GetTimer())
-    print("Boss Timer JSON:", bosstimer.GetTimerJSON())
+    bosstimer = bdomarket.Boss().scrape()
+    print("Boss Timer:", bosstimer.get_timer())
+    print("Boss Timer JSON:", bosstimer.get_timer_json())
 
     # Get item icon
-    item = bdomarket.Item(id="735008")
-    item.GetIcon("responses/sync/icons", True, bdomarket.ItemProp.NAME)
-    item.GetIcon("responses/sync/icons", True, bdomarket.ItemProp.ID)
+    item = bdomarket.Item(item_id="735008")
+    item.get_icon("responses/sync/icons", True, bdomarket.ItemProp.NAME)
+    item.get_icon("responses/sync/icons", True, bdomarket.ItemProp.ID)
     print("Item Icons saved to responses/icons")
     
     market = bdomarket.Market(region=bdomarket.MarketRegion.EU, apiversion=bdomarket.ApiVersion.V2, language=bdomarket.Locale.English)

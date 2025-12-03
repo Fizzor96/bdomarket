@@ -214,3 +214,4 @@ newfeatures/
 testlocal.py
 testpackage.py
 test/
+src/test.py

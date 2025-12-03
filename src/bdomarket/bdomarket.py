@@ -11,9 +11,169 @@ from tqdm import tqdm
 from .identifiers import ApiVersion, Locale, MarketRegion
 from .response import ApiResponse
 from .utils import check_for_updates, timestamp_to_datetime, experimental
+# pylint: enable=missing-module-docstring
 
 
-class Market:
+class BaseMarket:
+    def __init__(self, base_url: str):
+        self._base_url = base_url
+        self._session = requests.Session()
+        self._async_session: Optional[aiohttp.ClientSession] = None
+
+    async def _make_request_async(self, method: str, endpoint: str, json_data: Optional[Any] = None,
+                                  data: Optional[Any] = None, headers: Optional[Dict] = None,
+                                  params: Optional[Dict] = None) -> ApiResponse:
+        if self._async_session is None:
+            self._async_session = aiohttp.ClientSession()
+        try:
+            async with self._async_session.request(
+                method=method,
+                url=f"{self._base_url}/{endpoint}",
+                params=params,
+                json=json_data,
+                data=data,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=10)
+            ) as response:
+                url = str(response.url)
+                status_code = response.status
+                message = response.reason or "No message provided"
+                success = 200 <= status_code <= 299
+                content_type = response.headers.get("Content-Type", "").lower()
+                headers = response.headers
+                if "image/png" in content_type:
+                    content = await response.read()
+                elif "application/json" in content_type or response.content_length == 0:
+                    content = await response.json() if response.content_length else None
+                else:
+                    content = await response.text()
+                return ApiResponse(success, status_code, message, content, url, headers)
+        except Exception as e:
+            return ApiResponse(False, None, str(e), None, None)
+
+    def _make_request_sync(self, method: str, endpoint: str, json_data: Optional[Any] = None,
+                           data: Optional[Any] = None, headers: Optional[Dict] = None,
+                           params: Optional[Dict] = None) -> ApiResponse:
+        try:
+            response = self._session.request(
+                method=method,
+                url=f"{self._base_url}/{endpoint}",
+                params=params,
+                json=json_data,
+                data=data,
+                headers=headers,
+                timeout=10
+            )
+            url = str(response.url)
+            status_code = response.status_code
+            message = response.reason or "No message provided"
+            success = 200 <= status_code <= 299
+            content_type = response.headers.get("Content-Type", "").lower()
+            headers = response.headers
+            if "image/png" in content_type:
+                content = response.content
+            elif "application/json" in content_type or not response.content:
+                content = response.json() if response.content else None
+            else:
+                content = response.text
+            return ApiResponse(success, status_code, message, content, url, headers)
+        except Exception as e:
+            return ApiResponse(False, None, str(e), None, None)
+
+    # TODO: automatic close for sessions
+    # def __del__(self):
+    #     if self._session:
+    #         self.close()
+    #     if self._async_session:
+    #         await self.async_close()
+
+    def close(self):
+        if self._session:
+            self._session.close()
+            self._session = None
+        if self._async_session:
+            # Note: Cannot await in sync close; use async_close for async session
+            pass
+
+    async def async_close(self):
+        if self._async_session:
+            await self._async_session.close()
+            self._async_session = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    async def __aenter__(self):
+        self._async_session = aiohttp.ClientSession()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.async_close()
+
+
+class UnofficialMarket(BaseMarket):
+    def __init__(self, region: MarketRegion = MarketRegion.EU, apiversion: ApiVersion = ApiVersion.V2, language: Locale = Locale.English):
+        super().__init__("https://api.blackdesertmarket.com")
+        self._api_version = apiversion.value
+        self._api_region = "eu"
+        self._api_lang = "en-US"
+        threading.Thread(target=check_for_updates(), daemon=True).start()
+
+    @experimental("broken")
+    def get_list_hot_sync(self):
+        return self._make_request_sync("GET", "list/hot", params={"region": self._api_region, "language": self._api_lang})
+
+    @experimental("broken")
+    async def get_list_hot(self):
+        return await self._make_request_async("GET", "list/hot", params={"region": self._api_region, "language": self._api_lang})
+
+    async def get_list_queue(self):
+        return await self._make_request_async("GET", "list/queue", params={"region": self._api_region, "language": self._api_lang})
+
+    def get_list_queue_sync(self):
+        return self._make_request_sync("GET", "list/queue", params={"region": self._api_region, "language": self._api_lang})
+
+    async def get_list_category(self, main_category: int, sub_category: int):
+        return await self._make_request_async("GET", f"list/{main_category}/{sub_category}", params={"region": self._api_region, "language": self._api_lang})
+
+    def get_list_category_sync(self, main_category: int, sub_category: int):
+        return self._make_request_sync("GET", f"list/{main_category}/{sub_category}", params={"region": self._api_region, "language": self._api_lang})
+
+    async def get_item_id(self, item_id: int):
+        return await self._make_request_async("GET", f"item/{item_id}", params={"region": self._api_region, "language": self._api_lang})
+
+    def get_item_id_sync(self, item_id: int):
+        return self._make_request_sync("GET", f"item/{item_id}", params={"region": self._api_region, "language": self._api_lang})
+
+    async def get_item_id_icon(self, item_id: int):
+        return await self._make_request_async("GET", f"item/{item_id}/icon", params={"region": self._api_region, "language": self._api_lang})
+
+    def get_item_id_icon_sync(self, item_id: int):
+        return self._make_request_sync("GET", f"item/{item_id}/icon", params={"region": self._api_region, "language": self._api_lang})
+
+    async def get_item_id_enhancement(self, item_id: int, enhancement: int):
+        return await self._make_request_async("GET", f"item/{item_id}/{enhancement}", params={"region": self._api_region, "language": self._api_lang})
+
+    def get_item_id_enhancement_sync(self, item_id: int, enhancement: int):
+        return self._make_request_sync("GET", f"item/{item_id}/{enhancement}", params={"region": self._api_region, "language": self._api_lang})
+
+    async def get_item_id_enhancement_tooltip(self, item_id: int, enhancement: int):
+        return await self._make_request_async("GET", f"item/{item_id}/{enhancement}/tooltip", params={"region": self._api_region, "language": self._api_lang})
+
+    def get_item_id_enhancement_tooltip_sync(self, item_id: int, enhancement: int):
+        return self._make_request_sync("GET", f"item/{item_id}/{enhancement}/tooltip", params={"region": self._api_region, "language": self._api_lang})
+
+    async def get_search(self, search_string: str):
+        return await self._make_request_async("GET", f"search/{search_string}", params={"region": self._api_region, "language": self._api_lang})
+
+    def get_search_sync(self, search_string: str):
+        return self._make_request_sync("GET", f"search/{search_string}", params={"region": self._api_region, "language": self._api_lang})
+
+
+class ArshaMarket(BaseMarket):
     """
     The Market class provides synchronous and asynchronous methods to interact with the Black Desert Online market API,
     allowing retrieval of item data, price history, bidding information, and other market-related endpoints for different regions and languages.
@@ -21,6 +181,7 @@ class Market:
         market = Market(region=MarketRegion.EU, apiversion=ApiVersion.V2, language=Locale.English)
         response = market.get_market_price_info_sync(ids=["12345"], sids=["0"])
     """
+
     def __init__(self, region: MarketRegion = MarketRegion.EU, apiversion: ApiVersion = ApiVersion.V2, language: Locale = Locale.English):
         """Initializes the Market object with the specified region, API version, and language.
 
@@ -29,71 +190,12 @@ class Market:
             apiversion (ApiVersion, optional): The API version to use for the requests. Defaults to AvailableApiVersions.V2.
             language (Locale, optional): The language to use for the API responses. Defaults to SupportedLanguages.English.
         """
-        self._base_url = "https://api.arsha.io"
+        super().__init__("https://api.arsha.io")
         self._api_version = apiversion.value
         self._api_region = region.value
         self._api_lang = language.value
         self._session = requests.Session()
         threading.Thread(target=check_for_updates(), daemon=True).start()
-
-    async def _make_request_async(self, method: str, endpoint: str, json_data: Optional[Any] = None,
-                                  data: Optional[Any] = None, headers: Optional[Dict] = None,
-                                  params: Optional[Dict] = None) -> ApiResponse:
-        async with aiohttp.ClientSession() as session:
-            async with session.request(
-                method=method,
-                url=f"{
-                    self._base_url}/{self._api_version}/{self._api_region}/{endpoint}",
-                params=params,
-                json=json_data,
-                data=data,
-                headers=headers,
-                timeout=aiohttp.ClientTimeout(total=10)
-            ) as response:
-                # try:
-                #     content = await response.json()
-                # except aiohttp.ContentTypeError:
-                #     content = await response.text()
-                return ApiResponse(
-                    success=response.status >= 200 and response.status <= 299,
-                    status_code=response.status,
-                    message=response.reason or "No message provided",
-                    # content=content if isinstance(content, dict) else {"message": content}
-                    content=json.loads(json.dumps(await response.json(), indent=2))
-                )
-
-    def _make_request_sync(self, method: str, endpoint: str, json_data: Optional[Any] = None,
-                           data: Optional[Any] = None, headers: Optional[Dict] = None,
-                           params: Optional[Dict] = None) -> ApiResponse:
-        try:
-            # Reinitialize session if None
-            if self._session is None:
-                self._session = requests.Session()
-            response = self._session.request(
-                method=method,
-                url=f"{
-                    self._base_url}/{self._api_version}/{self._api_region}/{endpoint}",
-                params=params,
-                json=json_data,
-                data=data,
-                headers=headers,
-                timeout=10
-            )
-            content = response.json() if response.content else {}
-            return ApiResponse(
-                success=response.status_code >= 200 and response.status_code <= 299,
-                status_code=response.status_code,
-                message=response.reason or "No message provided",
-                content=json.dumps(content, indent=2, ensure_ascii=False)
-            )
-        except requests.RequestException as e:
-            return ApiResponse(message=str(e))
-
-    def close(self):
-        """Close the synchronous requests session."""
-        if self._session is not None:
-            self._session.close()
-            self._session = None
 
     async def get_world_market_wait_list(self) -> ApiResponse:
         """Returns a parsed variant of the current items waiting to be listed on the central market.  
@@ -681,17 +783,3 @@ class Market:
                     message=response.reason or "No message provided",
                     content=json.loads(await response.text())
                 )
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._session is not None:
-            self._session.close()
-            self._session = None
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        self.close()
