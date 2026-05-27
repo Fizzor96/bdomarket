@@ -9,10 +9,14 @@ from .utils import (
     search_items_by_name, search_items_by_id,
     check_for_updates
 )
+# For backwards compatibility and examples
+Market = ArshaMarket
+
 __all__ = (
     # Market
     "ArshaMarket",
     "UnofficialMarket",
+    "Market",
 
     # ApiResponse
     "ApiResponse",

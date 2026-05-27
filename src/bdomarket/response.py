@@ -58,7 +58,8 @@ class ApiResponse:
         Args:
             path (str): The file path where the content should be saved.
         """
-        if "application/json" in self.headers.get("Content-Type", "").lower():
+        headers = self.headers or {}
+        if "application/json" in headers.get("Content-Type", "").lower():
             os.makedirs(os.path.dirname(path), exist_ok=True)
             if isinstance(self.content, bytes):
                 with open(path, "wb") as f:
@@ -83,7 +84,8 @@ class ApiResponse:
         """
         if not isinstance(self.content, bytes):
             raise ValueError("Content is not an image (bytes)")
-        if "image/png" in self.headers.get("Content-Type", "").lower():
+        headers = self.headers or {}
+        if "image/png" in headers.get("Content-Type", "").lower():
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "wb") as f:
                 f.write(self.content)
@@ -93,7 +95,8 @@ class ApiResponse:
         if not isinstance(self.content, bytes):
             raise ValueError("Content is not an image (bytes)")
         try:
-            if "image/png" in self.headers.get("Content-Type", "").lower():
+            headers = self.headers or {}
+            if "image/png" in headers.get("Content-Type", "").lower():
                 from PIL import Image
                 import io
                 img = Image.open(io.BytesIO(self.content))
@@ -103,3 +106,4 @@ class ApiResponse:
         except ImportError:
             raise ImportError(
                 "PIL library is required to show images. Install with 'pip install pillow'")
+

@@ -143,278 +143,196 @@ Python installed on your system.
 
 <!-- USAGE EXAMPLES -->
 ## Usage
+
+### Quick Start — ArshaMarket (async)
+
 ```python
 import asyncio
 import bdomarket
 
+async def main():
+    async with bdomarket.Market(
+        region=bdomarket.MarketRegion.EU,
+        apiversion=bdomarket.ApiVersion.V2,
+        language=bdomarket.Locale.English
+    ) as market:
+        # Wait list
+        r = await market.get_world_market_wait_list()
+        print(r.success, r.status_code)
+        r.save_to_file("responses/waitlist.json")
 
-async def async_example():
-    # Initialize Market with EU region, V2 API, English locale
-    # And/Or you can initialize UnofficialMarket like:
-    # async with bdomarket.UnofficialMarket():
-    # ...
-    async with bdomarket.ArshaMarket(region=bdomarket.MarketRegion.EU, apiversion=bdomarket.ApiVersion.V2, language=bdomarket.Locale.English) as market:
-        # Get world market wait list (async)
-        wait_list = await market.get_world_market_wait_list()
-        # print("World Market Wait List:", wait_list.success, wait_list.status_code)
-        wait_list.save_to_file("responses/async/waitlist/get.json")
+        # Hot list
+        r = await market.get_world_market_hot_list()
+        r.save_to_file("responses/hotlist.json")
 
-        # Post world market wait list (async)
-        post_wait_list = await market.post_world_market_wait_list()
-        print("Post World Market Wait List:",
-              post_wait_list.success, post_wait_list.status_code)
-        post_wait_list.save_to_file("responses/async/waitlist/post.json")
+        # Price history (convertdate converts timestamps, formatprice adds separators)
+        r = await market.get_market_price_info(
+            ids=["735008", "735009"], sids=["20", "20"],
+            convertdate=True, formatprice=False
+        )
+        r.save_to_file("responses/priceinfo.json")
 
-        # Get world market hot list (async)
-        hot_list = await market.get_world_market_hot_list()
-        print("World Market Hot List:", hot_list.success, hot_list.status_code)
-        hot_list.save_to_file("responses/async/hotlist/get.json")
+        # Items by category (mainCategory=1 Weapons, subCategory=1 Swords)
+        r = await market.get_world_market_list(main_category="1", sub_category="1")
+        r.save_to_file("responses/marketlist.json")
 
-        # Post world market hot list (async)
-        post_hot_list = await market.post_world_market_hot_list()
-        print("Post World Market Hot List:",
-              post_hot_list.success, post_hot_list.status_code)
-        post_hot_list.save_to_file("responses/async/hotlist/post.json")
+        # Sub list — all enhancement levels for an item
+        r = await market.get_world_market_sub_list(ids=["735008"])
+        r.save_to_file("responses/sublist.json")
 
-        # Get market price info for items (async)
-        price_info = await market.get_market_price_info(ids=["735008", "735009"], sids=["20", "20"], convertdate=True, formatprice=False)
-        print("Market Price Info:", price_info.success, price_info.status_code)
-        price_info.save_to_file("responses/async/priceinfo/get.json")
+        # Bidding info — current buy/sell orders
+        r = await market.get_bidding_info(ids=["735008", "735009"], sids=["20", "20"])
+        r.save_to_file("responses/biddinginfo.json")
 
-        # Post market price info (async)
-        post_price_info = await market.post_market_price_info(ids=["735008", "735009"], sids=["20", "20"], convertdate=True, formatprice=False)
-        print("Post Market Price Info:", post_price_info.success,
-              post_price_info.status_code)
-        post_price_info.save_to_file("responses/async/priceinfo/post.json")
+        # Pearl items
+        r = await market.get_pearl_items()
+        r.save_to_file("responses/pearlitems.json")
 
-        # Get world market search list (async)
-        search_list = await market.get_world_market_search_list(ids=["735008"])
-        print("World Market Search List:",
-              search_list.success, search_list.status_code)
-        search_list.save_to_file("responses/async/searchlist/get.json")
+        # Full market snapshot
+        r = await market.get_market()
+        r.save_to_file("responses/market.json")
 
-        # Post world market search list (async)
-        post_search_list = await market.post_world_market_search_list(ids=["735008"])
-        print("Post World Market Search List:",
-              post_search_list.success, post_search_list.status_code)
-        post_search_list.save_to_file("responses/async/searchlist/post.json")
+        # Item lookup
+        r = await market.get_item(ids=["735008"])
+        r.save_to_file("responses/item.json")
 
-        # Get world market list by category (async)
-        market_list = await market.get_world_market_list(main_category="1", sub_category="1")
-        print("World Market List:", market_list.success, market_list.status_code)
-        market_list.save_to_file("responses/async/marketlist/get.json")
+        # Item database dump (full)
+        r = await market.item_database_dump_v2()
+        r.save_to_file("responses/itemdump.json")
+        if r.success and r.content:
+            print(bdomarket.get_items_by_name_from_db(r.content, "Blackstar Shuriken"))
+            print(bdomarket.get_items_by_id_from_db(r.content, 735008))
 
-        # Post world market list (async)
-        post_market_list = await market.post_world_market_list(main_category="1", sub_category="1")
-        print("Post World Market List:", post_market_list.success,
-              post_market_list.status_code)
-        post_market_list.save_to_file("responses/async/marketlist/post.json")
-
-        # Get world market sub list (async)
-        sub_list = await market.get_world_market_sub_list(ids=["735008"])
-        print("World Market Sub List:", sub_list.success, sub_list.status_code)
-        sub_list.save_to_file("responses/async/sublist/get.json")
-
-        # Post world market sub list (async)
-        post_sub_list = await market.post_world_market_sub_list(ids=["735008"])
-        print("Post World Market Sub List:",
-              post_sub_list.success, post_sub_list.status_code)
-        post_sub_list.save_to_file("responses/async/sublist/post.json")
-
-        # Get bidding info (async)
-        bidding_info = await market.get_bidding_info(ids=["735008", "735009"], sids=["20", "20"])
-        print("Bidding Info:", bidding_info.success, bidding_info.status_code)
-        bidding_info.save_to_file("responses/async/biddinginfo/get.json")
-
-        # Post bidding info (async)
-        post_bidding_info = await market.post_bidding_info(ids=["735008", "735009"], sids=["20", "20"])
-        print("Post Bidding Info:", post_bidding_info.success,
-              post_bidding_info.status_code)
-        post_bidding_info.save_to_file("responses/async/biddinginfo/post.json")
-
-        # Get pearl items (async)
-        pearl_items = await market.get_pearl_items()
-        print("Pearl Items:", pearl_items.success, pearl_items.status_code)
-        pearl_items.save_to_file("responses/async/pearlitems/get.json")
-
-        # Post pearl items (async)
-        post_pearl_items = await market.post_pearl_items()
-        print("Post Pearl Items:", post_pearl_items.success,
-              post_pearl_items.status_code)
-        post_pearl_items.save_to_file("responses/async/pearlitems/post.json")
-
-        # Get market (async)
-        market_data = await market.get_market()
-        print("Market Data:", market_data.success, market_data.status_code)
-        market_data.save_to_file("responses/async/marketdata/get.json")
-
-        # Post market (async)
-        post_market_data = await market.post_market()
-        print("Post Market Data:", post_market_data.success,
-              post_market_data.status_code)
-        post_market_data.save_to_file("responses/async/marketdata/post.json")
-
-        # Get item by ID (async)
-        item = await market.get_item(ids=["735008"])
-        print("Item Info:", item.success, item.status_code)
-        item.save_to_file("responses/async/item/get.json")
-
-        # EXPERIMENTAL! Get item database dump (async) - avoid using this
-        item_dump = await market.item_database_dump(start_id=1, end_id=10, chunk_size=5, showstatus=False)
-        print("Item Database Dump:", item_dump.success, item_dump.status_code)
-        item_dump.save_to_file("responses/async/itemdump/partial.json")
-
-        # Get item database dump full (async)
-        item_dump_full = await market.item_database_dump_v2()
-        item_dump_full.save_to_file("responses/async/itemdump/get.json")
-        print("Item Database Dump Full:",
-              item_dump_full.success, item_dump_full.status_code)
-        print(len(item_dump_full.content))
-        print(bdomarket.get_items_by_name_from_db(
-            item_dump_full.content, "Blackstar Shuriken"))
-        print(bdomarket.get_items_by_id_from_db(
-            item_dump_full.content, 735008))
-
-
-def sync_example():
-    # Get boss timer
-    bosstimer = bdomarket.Boss().scrape()
-    print("Boss Timer:", bosstimer.get_timer())
-    print("Boss Timer JSON:", bosstimer.get_timer_json())
-
-    # Get item icon
-    item = bdomarket.Item(item_id="735008")
-    item.get_icon("responses/sync/icons", True, bdomarket.ItemProp.NAME)
-    item.get_icon("responses/sync/icons", True, bdomarket.ItemProp.ID)
-    print("Item Icons saved to responses/icons")
-
-    market = bdomarket.Market(region=bdomarket.MarketRegion.EU,
-                              apiversion=bdomarket.ApiVersion.V2, language=bdomarket.Locale.English)
-    # Get world market wait list (sync)
-    wait_list = market.get_world_market_wait_list_sync()
-    print("World Market Wait List:", wait_list.success, wait_list.status_code)
-    wait_list.save_to_file("responses/sync/waitlist/get.json")
-
-    # Post world market wait list (sync)
-    post_wait_list = market.post_world_market_wait_list_sync()
-    print("Post World Market Wait List:",
-          post_wait_list.success, post_wait_list.status_code)
-    post_wait_list.save_to_file("responses/sync/waitlist/post.json")
-
-    # Get world market hot list (sync)
-    hot_list = market.get_world_market_hot_list_sync()
-    print("World Market Hot List:", hot_list.success, hot_list.status_code)
-    hot_list.save_to_file("responses/sync/hotlist/get.json")
-
-    # Post world market hot list (sync)
-    post_hot_list = market.post_world_market_hot_list_sync()
-    print("Post World Market Hot List:",
-          post_hot_list.success, post_hot_list.status_code)
-    post_hot_list.save_to_file("responses/sync/hotlist/post.json")
-
-    # Get market price info for items (sync)
-    price_info = market.get_market_price_info_sync(ids=["735008", "735009"], sids=[
-                                                   "20", "20"], convertdate=True, formatprice=False)
-    print("Market Price Info:", price_info.success, price_info.status_code)
-    price_info.save_to_file("responses/sync/priceinfo/get.json")
-
-    # Post market price info (sync)
-    post_price_info = market.post_market_price_info_sync(
-        ids=["735008", "735009"], sids=["20", "20"], convertdate=True, formatprice=False)
-    print("Post Market Price Info:", post_price_info.success,
-          post_price_info.status_code)
-    post_price_info.save_to_file("responses/sync/priceinfo/post.json")
-
-    # Get world market search list (sync)
-    search_list = market.get_world_market_search_list_sync(ids=["735008"])
-    print("World Market Search List:",
-          search_list.success, search_list.status_code)
-    search_list.save_to_file("responses/sync/searchlist/get.json")
-
-    # Post world market search list (sync)
-    post_search_list = market.post_world_market_search_list_sync(ids=[
-                                                                 "735008"])
-    print("Post World Market Search List:",
-          post_search_list.success, post_search_list.status_code)
-    post_search_list.save_to_file("responses/sync/searchlist/post.json")
-
-    # Get world market list by category (sync)
-    market_list = market.get_world_market_list_sync(
-        main_category="1", sub_category="1")
-    print("World Market List:", market_list.success, market_list.status_code)
-    market_list.save_to_file("responses/sync/marketlist/get.json")
-
-    # Post world market list (sync)
-    post_market_list = market.post_world_market_list_sync(
-        main_category="1", sub_category="1")
-    print("Post World Market List:", post_market_list.success,
-          post_market_list.status_code)
-    post_market_list.save_to_file("responses/sync/marketlist/post.json")
-
-    # Get world market sub list (sync)
-    sub_list = market.get_world_market_sub_list_sync(ids=["735008"])
-    print("World Market Sub List:", sub_list.success, sub_list.status_code)
-    sub_list.save_to_file("responses/sync/sublist/get.json")
-
-    # Post world market sub list (sync)
-    post_sub_list = market.post_world_market_sub_list_sync(ids=["735008"])
-    print("Post World Market Sub List:",
-          post_sub_list.success, post_sub_list.status_code)
-    post_sub_list.save_to_file("responses/sync/sublist/post.json")
-
-    # Get bidding info (sync)
-    bidding_info = market.get_bidding_info_sync(
-        ids=["735008", "735009"], sids=["20", "20"])
-    print("Bidding Info:", bidding_info.success, bidding_info.status_code)
-    bidding_info.save_to_file("responses/sync/biddinginfo/get.json")
-
-    # Post bidding info (sync)
-    post_bidding_info = market.post_bidding_info_sync(
-        ids=["735008", "735009"], sids=["20", "20"])
-    print("Post Bidding Info:", post_bidding_info.success,
-          post_bidding_info.status_code)
-    post_bidding_info.save_to_file("responses/sync/biddinginfo/post.json")
-
-    # Get pearl items (sync)
-    pearl_items = market.get_pearl_items_sync()
-    print("Pearl Items:", pearl_items.success, pearl_items.status_code)
-    pearl_items.save_to_file("responses/sync/pearlitems/get.json")
-
-    # Post pearl items (sync)
-    post_pearl_items = market.post_pearl_items_sync()
-    print("Post Pearl Items:", post_pearl_items.success,
-          post_pearl_items.status_code)
-    post_pearl_items.save_to_file("responses/sync/pearlitems/post.json")
-
-    # Get market (sync)
-    market_data = market.get_market_sync()
-    print("Market Data:", market_data.success, market_data.status_code)
-    market_data.save_to_file("responses/sync/marketdata/get.json")
-
-    # Post market (sync)
-    post_market_data = market.post_market_sync()
-    print("Post Market Data:", post_market_data.success,
-          post_market_data.status_code)
-    post_market_data.save_to_file("responses/sync/marketdata/post.json")
-
-    # Get item by ID (sync)
-    item = market.get_item_sync(ids=["735008"])
-    print("Item Info:", item.success, item.status_code)
-    item.save_to_file("responses/sync/item/get.json")
-
-    market.close()
-
-
-if __name__ == "__main__":
-    print("Loading...")
-    asyncio.run(async_example())
-    sync_example()
-    print("Done!")
-
-
+asyncio.run(main())
 ```
 
-<!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
+### Sync usage — ArshaMarket
+
+Every async method has a `_sync` counterpart. Pass `Market(...)` without `async with`
+and call `.close()` when done:
+
+```python
+market = bdomarket.Market(
+    region=bdomarket.MarketRegion.EU,
+    apiversion=bdomarket.ApiVersion.V2,
+    language=bdomarket.Locale.English
+)
+
+r = market.get_world_market_wait_list_sync()
+r.save_to_file("responses/waitlist.json")
+
+r = market.get_bidding_info_sync(ids=["735008", "735009"], sids=["20", "20"])
+r.save_to_file("responses/biddinginfo.json")
+
+# ... all other _sync methods follow the same pattern ...
+
+market.close()
+```
+
+### UnofficialMarket
+
+```python
+import asyncio
+import bdomarket
+
+async def main():
+    async with bdomarket.UnofficialMarket(
+        region=bdomarket.MarketRegion.EU,
+        language=bdomarket.Locale.English
+    ) as u:
+        # Queue list (items awaiting listing)
+        r = await u.get_list_queue()
+        print(r.success, r.status_code)
+
+        # Items by category
+        r = await u.get_list_category(main_category=20, sub_category=1)
+
+        # Item details by ID
+        r = await u.get_item_id(item_id=12094)
+        if r.success:
+            print(r.content.get("name"), r.content.get("grade"))
+
+        # Item icon (returns raw PNG bytes)
+        r = await u.get_item_id_icon(item_id=12094)
+        if r.success:
+            r.save_image("responses/icons/12094.png")
+
+        # Enhancement details and tooltip
+        r = await u.get_item_id_enhancement(item_id=12094, enhancement=5)
+        r = await u.get_item_id_enhancement_tooltip(item_id=12094, enhancement=5)
+
+        # Search by name
+        r = await u.get_search(search_string="Deboreka Ring")
+        if r.success:
+            print(f"Found {len(r.content)} result(s)")
+
+asyncio.run(main())
+```
+
+> All `UnofficialMarket` methods also have `_sync` variants
+> (e.g. `get_list_queue_sync()`, `get_item_id_sync()`, `get_search_sync()`).
+
+### Boss Timer
+
+```python
+import bdomarket
+
+boss = bdomarket.Boss(server=bdomarket.Server.EU).scrape()
+print(boss.get_timer())          # list of dicts
+print(boss.get_timer_json())     # JSON string
+```
+
+### Item Icon Downloader
+
+```python
+import bdomarket
+
+item = bdomarket.Item(item_id="735008", name="Blackstar Shuriken")
+
+# Save as "735008.png"
+item.get_icon("responses/icons", isrelative=True, filenameprop=bdomarket.ItemProp.ID)
+
+# Save as "Blackstar Shuriken.png"
+item.get_icon("responses/icons", isrelative=True, filenameprop=bdomarket.ItemProp.NAME)
+
+print(item.to_dict())
+```
+
+### Pig Cave Server Status
+
+```python
+import asyncio
+import bdomarket
+
+async def main():
+    pig = bdomarket.Pig(region=bdomarket.PigCave.EU)
+    r = await pig.get_status()
+    print(r.success, r.status_code)
+
+asyncio.run(main())
+```
+
+### Utility Functions
+
+```python
+import datetime
+import bdomarket
+
+# Timestamp ↔ datetime conversion
+dt = bdomarket.timestamp_to_datetime(1745193600.0)
+ts = bdomarket.datetime_to_timestamp(datetime.datetime(2025, 4, 21, tzinfo=datetime.timezone.utc))
+
+# Query an in-memory item list (e.g. result of item_database_dump_v2)
+matches = bdomarket.get_items_by_name_from_db(item_list, "Blackstar Shuriken")
+matches = bdomarket.get_items_by_id_from_db(item_list, 735008)
+
+# Query a saved JSON file produced by item_database_dump_v2 → save_to_file
+matches = bdomarket.search_items_by_name("responses/itemdump.json", "Kzarka")
+matches = bdomarket.search_items_by_id("responses/itemdump.json", 12094)
+```
+
+> 💡 See [`example.py`](https://github.com/Fizzor96/bdomarket/blob/master/example.py) for a
+> complete runnable demo of **every** feature, including all sync variants.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -447,14 +365,14 @@ if __name__ == "__main__":
 - [x] Utilities  
     - [x] Print readable representations of items  
     - [x] Additional helper functions  
-- [ ] Error Handling & Robustness  
-    - [ ] Graceful handling of network/API errors  
+- [/] Error Handling & Robustness  
+    - [x] Graceful handling of network/API errors  
     - [ ] Retry logic for failed requests  
-    - [ ] Logging for debugging and monitoring  
-- [ ] Documentation  
+    - [x] Safe terminal execution on Windows (Unicode safety)  
+- [/] Documentation  
     - [ ] Comprehensive API documentation  
-    - [ ] Usage examples and tutorials  
-    - [ ] Docstrings for all public classes and methods  
+    - [x] Usage examples and tutorials  
+    - [x] Docstrings for all public classes and methods  
 - [ ] Testing  
     - [ ] Unit tests for core functionality  
     - [ ] Integration tests for API endpoints  
@@ -468,7 +386,7 @@ if __name__ == "__main__":
 - [ ] Webhook/Notification Support  
     - [ ] Notify users of market changes or boss
 
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/Fizzor96/bdomarket/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -489,78 +407,6 @@ Don't forget to give the project a star! Thanks again!
 5. Open a Pull Request
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
-
-### Example:
-
-```python
-market.GetBiddingInfo(["735008", "731109"], ["19", "20"]).SaveToFile("responses/bidding/get.json")
-```
-
-Outputs:
-
-```json
-{
-  "success": true,
-  "statuscode": 200,
-  "message": "No message provided",
-  "content": [
-    {
-      "name": "Blackstar Shuriken",
-      "id": 735008,
-      "sid": 19,
-      "orders": [
-        {
-          "price": 14500000000,
-          "sellers": 1,
-          "buyers": 0
-        },
-        {
-          "price": 15500000000,
-          "sellers": 1,
-          "buyers": 0
-        },
-        {
-          "price": 14900000000,
-          "sellers": 4,
-          "buyers": 0
-        },
-        {
-          "price": 14700000000,
-          "sellers": 0,
-          "buyers": 0
-        }
-      ]
-    },
-    {
-      "name": "Blackstar Sura Katana",
-      "id": 731109,
-      "sid": 20,
-      "orders": [
-        {
-          "price": 72500000000,
-          "sellers": 1,
-          "buyers": 0
-        },
-        {
-          "price": 73500000000,
-          "sellers": 1,
-          "buyers": 0
-        },
-        {
-          "price": 73000000000,
-          "sellers": 1,
-          "buyers": 0
-        },
-        {
-          "price": 70500000000,
-          "sellers": 0,
-          "buyers": 0
-        }
-      ]
-    }
-  ]
-}
-```
 
 ### Top contributors:
 
@@ -587,7 +433,7 @@ This project is **copyleft**: you may copy, distribute, and modify it under the 
 <!-- CONTACT -->
 ## Contact
 
-<!-- Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com -->
+Szőke Dominik - szokedominik@gmail.com
 
 Project Link: [https://github.com/Fizzor96/bdomarket](https://github.com/Fizzor96/bdomarket)
 

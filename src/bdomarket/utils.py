@@ -14,6 +14,33 @@ from bs4 import BeautifulSoup
 from .identifiers import ItemProp, PigCave, Server
 from .response import ApiResponse
 
+def safe_print(*args, **kwargs):
+    """Prints messages safely, handling potential UnicodeEncodeError on Windows platforms."""
+    try:
+        print(*args, **kwargs)
+    except UnicodeEncodeError:
+        import sys
+        replacements = {
+            "⚠️": "[WARNING]",
+            "✅": "[SUCCESS]",
+            "🔔": "[UPDATE]",
+        }
+        processed_args = []
+        for arg in args:
+            arg_str = str(arg)
+            for emoji, replacement in replacements.items():
+                arg_str = arg_str.replace(emoji, replacement)
+            encoding = sys.stdout.encoding or 'ascii'
+            try:
+                arg_str = arg_str.encode(encoding, errors='replace').decode(encoding)
+            except Exception:
+                arg_str = arg_str.encode('ascii', errors='replace').decode('ascii')
+            processed_args.append(arg_str)
+        try:
+            print(*processed_args, **kwargs)
+        except Exception:
+            pass
+
 def experimental(stage="experimental"):
     """Decorator to mark a function as experimental, printing a warning when it is called.
 
@@ -23,7 +50,7 @@ def experimental(stage="experimental"):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            print(f"⚠️  {func.__name__} is {stage}.")
+            safe_print(f"⚠️  {func.__name__} is {stage}.")
             return func(*args, **kwargs)
         return wrapper
     return decorator
@@ -43,16 +70,16 @@ def check_for_updates():
         if response.status_code == 200:
             latest_version = response.json()["info"]["version"]
     except requests.RequestException as e:
-        print(f"Update check failed: {e}")
+        safe_print(f"Update check failed: {e}")
         return
 
     if latest_version and latest_version != installed_version:
-        print(f"🔔 Update available for {package}: {installed_version or 'Not installed'} → {latest_version}")
+        safe_print(f"🔔 Update available for {package}: {installed_version or 'Not installed'} → {latest_version}")
     else:
-        print(f"✅ {package} is up to date ({installed_version})")
-    print("Stay Updated!")
-    print("Join our Discord community for the latest updates, news, and exclusive information:")
-    print("https://discord.gg/hSWHfhSpDe")
+        safe_print(f"✅ {package} is up to date ({installed_version})")
+    safe_print("Stay Updated!")
+    safe_print("Join our Discord community for the latest updates, news, and exclusive information:")
+    safe_print("https://discord.gg/hSWHfhSpDe")
 
 def timestamp_to_datetime(timestamp: float) -> datetime:
     """Convert a timestamp to a UTC datetime object.
@@ -199,36 +226,61 @@ class Boss:
         Returns:
             Boss: The instance itself for method chaining.
         """
-        self.__content = requests.get(self.__url, headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Connection": "keep-alive",
-        }, timeout=5).content
-
-        soup = BeautifulSoup(self.__content, 'html.parser')
-
-        table = soup.find('table', class_='main-table')
-        thead = table.find('thead')  # type: ignore
-        time_headers = [th.text.strip() for th in thead.find_all('th')][1:]  # type: ignore
         self.__data = []
+        try:
+            response = requests.get(self.__url, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Connection": "keep-alive",
+            }, timeout=5)
+            
+            if response.status_code != 200:
+                safe_print(f"⚠️ Boss timer scrape failed: HTTP {response.status_code}")
+                return self
+                
+            self.__content = response.content
+            soup = BeautifulSoup(self.__content, 'html.parser')
 
-        tbody = table.find('tbody')  # type: ignore
-        for row in tbody.find_all('tr'):  # type: ignore
-            cells = row.find_all(['th', 'td'])  # type: ignore
-            day = cells[0].text.strip()
+            table = soup.find('table', class_='main-table')
+            if not table:
+                safe_print("⚠️ Boss timer scrape failed: 'main-table' not found in HTML.")
+                return self
 
-            for i, cell in enumerate(cells[1:]):
-                time = time_headers[i]
+            thead = table.find('thead')  # type: ignore
+            if not thead:
+                safe_print("⚠️ Boss timer scrape failed: 'thead' not found in table.")
+                return self
 
-                if cell.text.strip() == "-":
+            time_headers = [th.text.strip() for th in thead.find_all('th')][1:]  # type: ignore
+
+            tbody = table.find('tbody')  # type: ignore
+            if not tbody:
+                safe_print("⚠️ Boss timer scrape failed: 'tbody' not found in table.")
+                return self
+
+            for row in tbody.find_all('tr'):  # type: ignore
+                cells = row.find_all(['th', 'td'])  # type: ignore
+                if not cells:
                     continue
+                day = cells[0].text.strip()
 
-                bosses = [span.text.strip() for span in cell.find_all('span')]  # type: ignore
+                for i, cell in enumerate(cells[1:]):
+                    if i >= len(time_headers):
+                        break
+                    time = time_headers[i]
 
-                if bosses:
-                    self.__data.append([f"{day} {time}", ', '.join(bosses)])
+                    if cell.text.strip() == "-":
+                        continue
+
+                    bosses = [span.text.strip() for span in cell.find_all('span')]  # type: ignore
+
+                    if bosses:
+                        self.__data.append([f"{day} {time}", ', '.join(bosses)])
+        except Exception as e:
+            safe_print(f"⚠️ Boss timer scrape encountered an error: {e}")
         return self
+
 
     @experimental("beta")
     def get_timer(self) -> list:

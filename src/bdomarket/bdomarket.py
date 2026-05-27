@@ -80,12 +80,11 @@ class BaseMarket:
         except Exception as e:
             return ApiResponse(False, None, str(e), None, None)
 
-    # TODO: automatic close for sessions
-    # def __del__(self):
-    #     if self._session:
-    #         self.close()
-    #     if self._async_session:
-    #         await self.async_close()
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass
 
     def close(self):
         if self._session:
@@ -119,6 +118,7 @@ class UnofficialMarket(BaseMarket):
     Unofficial market API client for Black Desert Online, inheriting from BaseMarket.
     Provides synchronous and asynchronous methods for fetching market data.
     """
+    # TODO: implement identifiers
 
     def __init__(self, region: MarketRegion = MarketRegion.EU, apiversion: ApiVersion = ApiVersion.V2, language: Locale = Locale.English):
         """
@@ -131,9 +131,26 @@ class UnofficialMarket(BaseMarket):
         """
         super().__init__("https://api.blackdesertmarket.com")
         self._api_version = apiversion.value
-        self._api_region = "eu"
-        self._api_lang = "en-US"
-        threading.Thread(target=check_for_updates(), daemon=True).start()
+        self._api_region = region.value
+        
+        # Map Locale to UnofficialMarket languages
+        lang_map = {
+            Locale.English: "en-US",
+            Locale.German: "de-DE",
+            Locale.French: "fr-FR",
+            Locale.Russian: "ru-RU",
+            Locale.SpanishEU: "es-ES",
+            Locale.PortugueseRedFox: "pt-BR",
+            Locale.Portuguese: "pt-BR",
+            Locale.Japanese: "ja-JP",
+            Locale.Korean: "ko-KR",
+            Locale.Thai: "th-TH",
+            Locale.Turkish: "tr-TR",
+            Locale.ChineseTaiwan: "zh-TW",
+            Locale.ChineseMainland: "zh-CN",
+        }
+        self._api_lang = lang_map.get(language, "en-US")
+        threading.Thread(target=check_for_updates, daemon=True).start()
 
     @experimental("broken")
     def get_list_hot_sync(self):
@@ -346,7 +363,7 @@ class ArshaMarket(BaseMarket):
         self._api_region = region.value
         self._api_lang = language.value
         self._session = requests.Session()
-        threading.Thread(target=check_for_updates(), daemon=True).start()
+        threading.Thread(target=check_for_updates, daemon=True).start()
 
     async def get_world_market_wait_list(self) -> ApiResponse:
         """Returns a parsed variant of the current items waiting to be listed on the central market.  
@@ -426,12 +443,12 @@ class ArshaMarket(BaseMarket):
         """
         params = {"id": ids, "sid": sids, "lang": self._api_lang}
         result = await self._make_request_async("GET", "GetMarketPriceInfo", params=params)
-        if convertdate or formatprice:
+        if (convertdate or formatprice) and result.success and result.content is not None:
             # Handle both list and dict cases
-            content_list = [result.content] if isinstance(
-                result.content, dict) else result.content
+            is_dict = isinstance(result.content, dict)
+            content_list = [result.content] if is_dict else result.content
             for item in content_list:
-                if "history" in item:
+                if item and "history" in item:
                     new_history = {}
                     for k, v in item["history"].items():  # type: ignore
                         # Convert date if needed
@@ -441,7 +458,7 @@ class ArshaMarket(BaseMarket):
                         new_value = f"{v:,}" if formatprice else v
                         new_history[new_key] = new_value
                     item["history"] = new_history  # type: ignore
-            result.content = content_list  # type: ignore
+            result.content = content_list[0] if is_dict else content_list  # type: ignore
         return result
 
     def get_market_price_info_sync(self, ids: List[str], sids: List[str], convertdate: bool = True, formatprice: bool = False) -> ApiResponse:
@@ -459,12 +476,12 @@ class ArshaMarket(BaseMarket):
         params = {"id": ids, "sid": sids, "lang": self._api_lang}
         result = self._make_request_sync(
             "GET", "GetMarketPriceInfo", params=params)
-        if convertdate or formatprice:
+        if (convertdate or formatprice) and result.success and result.content is not None:
             # Handle both list and dict cases
-            content_list = [result.content] if isinstance(
-                result.content, dict) else result.content
+            is_dict = isinstance(result.content, dict)
+            content_list = [result.content] if is_dict else result.content
             for item in content_list:
-                if "history" in item:
+                if item and "history" in item:
                     new_history = {}
                     for k, v in item["history"].items():  # type: ignore
                         # Convert date if needed
@@ -474,7 +491,7 @@ class ArshaMarket(BaseMarket):
                         new_value = f"{v:,}" if formatprice else v
                         new_history[new_key] = new_value
                     item["history"] = new_history  # type: ignore
-            result.content = content_list  # type: ignore
+            result.content = content_list[0] if is_dict else content_list  # type: ignore
         return result
 
     async def post_market_price_info(self, ids: List[str], sids: List[str], convertdate: bool = True, formatprice: bool = False) -> ApiResponse:
@@ -491,12 +508,12 @@ class ArshaMarket(BaseMarket):
         """
         result = await self._make_request_async("POST", "GetMarketPriceInfo", params={"lang": self._api_lang},
                                                 json_data=[{"id": int(id_), "sid": int(sid)} for id_, sid in zip(ids, sids)])
-        if convertdate or formatprice:
+        if (convertdate or formatprice) and result.success and result.content is not None:
             # Handle both list and dict cases
-            content_list = [result.content] if isinstance(
-                result.content, dict) else result.content
+            is_dict = isinstance(result.content, dict)
+            content_list = [result.content] if is_dict else result.content
             for item in content_list:
-                if "history" in item:
+                if item and "history" in item:
                     new_history = {}
                     for k, v in item["history"].items():  # type: ignore
                         # Convert date if needed
@@ -506,7 +523,7 @@ class ArshaMarket(BaseMarket):
                         new_value = f"{v:,}" if formatprice else v
                         new_history[new_key] = new_value
                     item["history"] = new_history  # type: ignore
-            result.content = content_list  # type: ignore
+            result.content = content_list[0] if is_dict else content_list  # type: ignore
         return result
 
     def post_market_price_info_sync(self, ids: List[str], sids: List[str], convertdate: bool = True, formatprice: bool = False) -> ApiResponse:
@@ -523,12 +540,12 @@ class ArshaMarket(BaseMarket):
         """
         result = self._make_request_sync("POST", "GetMarketPriceInfo", params={"lang": self._api_lang},
                                          json_data=[{"id": int(id_), "sid": int(sid)} for id_, sid in zip(ids, sids)])
-        if convertdate or formatprice:
+        if (convertdate or formatprice) and result.success and result.content is not None:
             # Handle both list and dict cases
-            content_list = [result.content] if isinstance(
-                result.content, dict) else result.content
+            is_dict = isinstance(result.content, dict)
+            content_list = [result.content] if is_dict else result.content
             for item in content_list:
-                if "history" in item:
+                if item and "history" in item:
                     new_history = {}
                     for k, v in item["history"].items():  # type: ignore
                         # Convert date if needed
@@ -538,7 +555,7 @@ class ArshaMarket(BaseMarket):
                         new_value = f"{v:,}" if formatprice else v
                         new_history[new_key] = new_value
                     item["history"] = new_history  # type: ignore
-            result.content = content_list  # type: ignore
+            result.content = content_list[0] if is_dict else content_list  # type: ignore
         return result
 
     async def get_world_market_search_list(self, ids: List[str]) -> ApiResponse:
@@ -787,11 +804,12 @@ class ArshaMarket(BaseMarket):
         """
         result = self._make_request_sync(
             "GET", "market", params={"lang": self._api_lang})
+        content = json.loads(result.content) if result.success and result.content else None
         return ApiResponse(
             success=result.success,
             status_code=result.status_code,
             message=result.message,
-            content=json.loads(result.content)
+            content=content
         )
 
     async def post_market(self) -> ApiResponse:
@@ -812,11 +830,12 @@ class ArshaMarket(BaseMarket):
         """
         result = self._make_request_sync(
             "POST", "market", params={"lang": self._api_lang})
+        content = json.loads(result.content) if result.success and result.content else None
         return ApiResponse(
             success=result.success,
             status_code=result.status_code,
             message=result.message,
-            content=json.loads(result.content)
+            content=content
         )
 
     async def get_item(self, ids: List[str]) -> ApiResponse:
@@ -831,21 +850,7 @@ class ArshaMarket(BaseMarket):
         """
         if not ids:
             return ApiResponse()
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{self._base_url}/util/db",
-                    params={"id": ids, "lang": self._api_lang},
-                    timeout=aiohttp.ClientTimeout(total=10)
-                ) as response:
-                    return ApiResponse(
-                        success=response.status >= 200 and response.status <= 299,
-                        status_code=response.status,
-                        message=response.reason or "No message provided",
-                        content=json.loads(await response.text())
-                    )
-        except aiohttp.ClientError as e:
-            return ApiResponse(message=str(e))
+        return await self._make_request_async("GET", "util/db", params={"id": ids, "lang": self._api_lang})
 
     def get_item_sync(self, ids: List[str]) -> ApiResponse:
         """Get item information by its id(s).
@@ -859,20 +864,7 @@ class ArshaMarket(BaseMarket):
         """
         if not ids:
             return ApiResponse()
-        try:
-            response = self._make_request_sync(
-                method="GET",
-                endpoint=f"{self._base_url}/util/db",
-                params={"id": ids, "lang": self._api_lang}
-            )
-            return ApiResponse(
-                success=response.status_code >= 200 and response.status_code <= 299,
-                status_code=response.status_code,
-                message=response.message or "No message provided",
-                content=json.loads(response.content)
-            )
-        except aiohttp.ClientError as e:
-            return ApiResponse(message=str(e))
+        return self._make_request_sync("GET", "util/db", params={"id": ids, "lang": self._api_lang})
 
     @experimental("beta")
     async def item_database_dump(self, start_id: int, end_id: int, chunk_size: int = 100, showstatus: bool = False) -> ApiResponse:
@@ -922,15 +914,4 @@ class ArshaMarket(BaseMarket):
         Returns:
             ApiResponse: standardized response. Response.content: Returns JsonArray of JsonObjects of items with their id, name, and sid.
         """
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"{self._base_url}/util/db",
-                params={"lang": self._api_lang},
-                timeout=aiohttp.ClientTimeout(total=10)
-            ) as response:
-                return ApiResponse(
-                    success=response.status >= 200 and response.status <= 299,
-                    status_code=response.status,
-                    message=response.reason or "No message provided",
-                    content=json.loads(await response.text())
-                )
+        return await self._make_request_async("GET", "util/db", params={"lang": self._api_lang})
